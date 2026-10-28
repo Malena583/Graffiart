@@ -1,0 +1,281 @@
+const { EntitySchema } = require('typeorm');
+
+const id = { type: 'varchar', length: 191, primary: true, generated: 'uuid' };
+const createdAt = { type: 'datetime', precision: 3, createDate: true, default: () => 'CURRENT_TIMESTAMP(3)' };
+const updatedAt = { type: 'datetime', precision: 3, updateDate: true, default: () => 'CURRENT_TIMESTAMP(3)', onUpdate: 'CURRENT_TIMESTAMP(3)' };
+const dinero = { type: 'decimal', precision: 10, scale: 2 };
+
+const Usuario = new EntitySchema({
+  name: 'usuario',
+  tableName: 'usuario',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 191 },
+    apellido: { type: 'varchar', length: 191 },
+    email: { type: 'varchar', length: 191, unique: true },
+    passwordHash: { type: 'varchar', length: 191 },
+    telefono: { type: 'varchar', length: 191, nullable: true },
+    fechaRegistro: { type: 'datetime', precision: 3, createDate: true, default: () => 'CURRENT_TIMESTAMP(3)' },
+    emailVerificado: { type: 'boolean', default: false },
+    rol: { type: 'enum', enum: ['CLIENTE', 'ADMIN'], default: 'CLIENTE' },
+  },
+  relations: {
+    carrito: { type: 'one-to-one', target: 'carrito', inverseSide: 'usuario' },
+    disenoguardado: { type: 'one-to-many', target: 'disenoguardado', inverseSide: 'usuario' },
+    inventariomovimiento: { type: 'one-to-many', target: 'inventariomovimiento', inverseSide: 'usuario' },
+    tokenacceso: { type: 'one-to-many', target: 'tokenacceso', inverseSide: 'usuario' },
+  },
+});
+
+const TokenAcceso = new EntitySchema({
+  name: 'tokenacceso',
+  tableName: 'tokenacceso',
+  columns: {
+    id,
+    tokenHash: { type: 'varchar', length: 191, unique: true },
+    tipo: { type: 'enum', enum: ['VERIFICACION_EMAIL', 'RECUPERACION_PASSWORD'] },
+    expiraEn: { type: 'datetime', precision: 3 },
+    usado: { type: 'boolean', default: false },
+    creadoEn: { type: 'datetime', precision: 3, createDate: true, default: () => 'CURRENT_TIMESTAMP(3)' },
+    usuarioId: { type: 'varchar', length: 191 },
+  },
+  relations: {
+    usuario: {
+      type: 'many-to-one',
+      target: 'usuario',
+      joinColumn: { name: 'usuarioId' },
+      onDelete: 'CASCADE',
+      inverseSide: 'tokenacceso',
+    },
+  },
+  indices: [
+    { columns: ['expiraEn'] },
+    { columns: ['usuarioId', 'tipo'] },
+  ],
+});
+
+const Carrito = new EntitySchema({
+  name: 'carrito',
+  tableName: 'carrito',
+  columns: {
+    id,
+    usuarioId: { type: 'varchar', length: 191, unique: true },
+    createdAt,
+    updatedAt,
+  },
+  relations: {
+    usuario: {
+      type: 'one-to-one',
+      target: 'usuario',
+      joinColumn: { name: 'usuarioId' },
+      onDelete: 'CASCADE',
+      inverseSide: 'carrito',
+    },
+    itemcarrito: { type: 'one-to-many', target: 'itemcarrito', inverseSide: 'carrito' },
+  },
+});
+
+const ItemCarrito = new EntitySchema({
+  name: 'itemcarrito',
+  tableName: 'itemcarrito',
+  columns: {
+    id,
+    carritoId: { type: 'varchar', length: 191 },
+    gabineteId: { type: 'varchar', length: 191, nullable: true },
+    disenoGuardadoId: { type: 'varchar', length: 191, nullable: true },
+    cantidad: { type: 'int', default: 1 },
+    precioUnitario: dinero,
+    createdAt,
+    updatedAt,
+  },
+  relations: {
+    carrito: {
+      type: 'many-to-one',
+      target: 'carrito',
+      joinColumn: { name: 'carritoId' },
+      onDelete: 'CASCADE',
+      inverseSide: 'itemcarrito',
+    },
+    disenoguardado: {
+      type: 'many-to-one',
+      target: 'disenoguardado',
+      joinColumn: { name: 'disenoGuardadoId' },
+      nullable: true,
+      inverseSide: 'itemcarrito',
+    },
+    gabinete: {
+      type: 'many-to-one',
+      target: 'gabinete',
+      joinColumn: { name: 'gabineteId' },
+      nullable: true,
+      inverseSide: 'itemcarrito',
+    },
+  },
+});
+
+const DisenoGuardado = new EntitySchema({
+  name: 'disenoguardado',
+  tableName: 'disenoguardado',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 120 },
+    descripcion: { type: 'text', nullable: true },
+    configuracion: { type: 'longtext' },
+    createdAt,
+    updatedAt,
+    usuarioId: { type: 'varchar', length: 191 },
+  },
+  relations: {
+    usuario: {
+      type: 'many-to-one',
+      target: 'usuario',
+      joinColumn: { name: 'usuarioId' },
+      onDelete: 'CASCADE',
+      inverseSide: 'disenoguardado',
+    },
+    itemcarrito: { type: 'one-to-many', target: 'itemcarrito', inverseSide: 'disenoguardado' },
+  },
+});
+
+const Gabinete = new EntitySchema({
+  name: 'gabinete',
+  tableName: 'gabinete',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 150 },
+    marca: { type: 'varchar', length: 150 },
+    costoUnitario: dinero,
+    stockActual: { type: 'int', default: 0 },
+    stockMinimo: { type: 'int', default: 0 },
+    createdAt,
+    updatedAt,
+    activo: { type: 'boolean', default: true },
+    formato: { type: 'enum', enum: ['ATX', 'MICRO_ATX', 'ITX'] },
+    materialChasis: { type: 'enum', enum: ['ACERO', 'ALUMINIO'] },
+    panel: { type: 'enum', enum: ['VIDRIO_TEMPLADO', 'ACRILICO', 'MALLADO'] },
+    tamano: { type: 'enum', enum: ['FULL_TOWER', 'MID_TOWER', 'MINI_TOWER'] },
+    categoriaId: { type: 'varchar', length: 191, nullable: true },
+    imagen: { type: 'longblob', nullable: true },
+  },
+  relations: {
+    categoria: {
+      type: 'many-to-one',
+      target: 'CategoriaProducto',
+      joinColumn: { name: 'categoriaId' },
+      onDelete: 'SET NULL',
+      nullable: true,
+      inverseSide: 'productos',
+    },
+    inventariomovimiento: { type: 'one-to-many', target: 'inventariomovimiento', inverseSide: 'gabinete' },
+    itemcarrito: { type: 'one-to-many', target: 'itemcarrito', inverseSide: 'gabinete' },
+  },
+});
+
+const CategoriaProducto = new EntitySchema({
+  name: 'CategoriaProducto',
+  tableName: 'CategoriaProducto',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 100, unique: true },
+    descripcion: { type: 'text', nullable: true },
+    activo: { type: 'boolean', default: true },
+    createdAt,
+    updatedAt,
+  },
+  relations: {
+    productos: { type: 'one-to-many', target: 'gabinete', inverseSide: 'categoria' },
+  },
+});
+
+const Material = new EntitySchema({
+  name: 'material',
+  tableName: 'material',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 150 },
+    codigo: { type: 'varchar', length: 50, unique: true },
+    categoria: { type: 'enum', enum: ['MDF', 'MELAMINA', 'METAL', 'VIDRIO', 'ACERO', 'ACCESORIO', 'OTRO'] },
+    unidadMedida: { type: 'enum', enum: ['UNIDAD', 'KG', 'M', 'M2', 'CM', 'LATA', 'BOLSA'] },
+    stockActual: { type: 'int', default: 0 },
+    stockMinimo: { type: 'int', default: 0 },
+    costoUnitario: { ...dinero, nullable: true },
+    descripcion: { type: 'text', nullable: true },
+    activo: { type: 'boolean', default: true },
+    createdAt,
+    updatedAt,
+  },
+  relations: {
+    inventariomovimiento: { type: 'one-to-many', target: 'inventariomovimiento', inverseSide: 'material' },
+  },
+});
+
+const TamanoConfigurador = new EntitySchema({
+  name: 'tamanoconfigurador',
+  tableName: 'tamanoconfigurador',
+  columns: {
+    codigo: { type: 'varchar', length: 30, primary: true },
+    nombre: { type: 'varchar', length: 50 },
+    precioBase: dinero,
+    altoMinCm: { type: 'int' },
+    altoMaxCm: { type: 'int' },
+    anchoMinCm: { type: 'int' },
+    anchoMaxCm: { type: 'int' },
+    profundidadMinCm: { type: 'int' },
+    profundidadMaxCm: { type: 'int' },
+    activo: { type: 'boolean', default: true },
+  },
+});
+
+const InventarioMovimiento = new EntitySchema({
+  name: 'inventariomovimiento',
+  tableName: 'inventariomovimiento',
+  columns: {
+    id,
+    materialId: { type: 'varchar', length: 191, nullable: true },
+    tipo: { type: 'enum', enum: ['ENTRADA', 'SALIDA', 'AJUSTE'] },
+    cantidad: { type: 'int' },
+    motivo: { type: 'varchar', length: 191, nullable: true },
+    referencia: { type: 'varchar', length: 191, nullable: true },
+    fecha: { type: 'datetime', precision: 3, default: () => 'CURRENT_TIMESTAMP(3)' },
+    usuarioId: { type: 'varchar', length: 191, nullable: true },
+    createdAt,
+    gabineteId: { type: 'varchar', length: 191, nullable: true },
+  },
+  relations: {
+    gabinete: {
+      type: 'many-to-one',
+      target: 'gabinete',
+      joinColumn: { name: 'gabineteId' },
+      nullable: true,
+      inverseSide: 'inventariomovimiento',
+    },
+    material: {
+      type: 'many-to-one',
+      target: 'material',
+      joinColumn: { name: 'materialId' },
+      onDelete: 'CASCADE',
+      nullable: true,
+      inverseSide: 'inventariomovimiento',
+    },
+    usuario: {
+      type: 'many-to-one',
+      target: 'usuario',
+      joinColumn: { name: 'usuarioId' },
+      nullable: true,
+      inverseSide: 'inventariomovimiento',
+    },
+  },
+});
+
+module.exports = [
+  Usuario,
+  TokenAcceso,
+  Carrito,
+  ItemCarrito,
+  DisenoGuardado,
+  Gabinete,
+  CategoriaProducto,
+  Material,
+  TamanoConfigurador,
+  InventarioMovimiento,
+];
