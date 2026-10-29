@@ -23,7 +23,7 @@ const Usuario = new EntitySchema({
     carrito: { type: 'one-to-one', target: 'carrito', inverseSide: 'usuario' },
     disenoguardado: { type: 'one-to-many', target: 'disenoguardado', inverseSide: 'usuario' },
     inventariomovimiento: { type: 'one-to-many', target: 'inventariomovimiento', inverseSide: 'usuario' },
-    pedidos: {type: 'one-to-many', target: 'pedido', inverseSide: 'usuario',},
+    pedidos: { type: 'one-to-many', target: 'pedido', inverseSide: 'usuario' },
   },
 });
 
@@ -86,6 +86,7 @@ const ItemCarrito = new EntitySchema({
   },
 });
 
+// Diseños PERSONALES guardados por cada cliente (no es el catálogo de diseños visuales).
 const DisenoGuardado = new EntitySchema({
   name: 'disenoguardado',
   tableName: 'disenoguardado',
@@ -199,6 +200,47 @@ const TamanoConfigurador = new EntitySchema({
   },
 });
 
+// Colores de PERSONALIZACIÓN del configurador (distintos de los atributos de los productos del catálogo).
+const ColorConfigurador = new EntitySchema({
+  name: 'colorconfigurador',
+  tableName: 'colorconfigurador',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 50, unique: true },
+    codigoHex: { type: 'varchar', length: 7 },
+    activo: { type: 'boolean', default: true },
+    createdAt,
+    updatedAt,
+  },
+});
+
+// Diseños VISUALES de gabinetes administrados desde el panel (no son los diseños personales de los clientes).
+const DisenoGabinete = new EntitySchema({
+  name: 'disenogabinete',
+  tableName: 'disenogabinete',
+  columns: {
+    id,
+    nombre: { type: 'varchar', length: 120, unique: true },
+    descripcion: { type: 'text', nullable: true },
+    imagenFrontal: { type: 'longblob', nullable: true },
+    imagenIzquierda: { type: 'longblob', nullable: true },
+    activo: { type: 'boolean', default: true },
+    createdAt,
+    updatedAt,
+  },
+  relations: {
+    tamanos: {
+      type: 'many-to-many',
+      target: 'tamanoconfigurador',
+      joinTable: {
+        name: 'disenogabinetetamano',
+        joinColumn: { name: 'disenoId', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'tamanoCodigo', referencedColumnName: 'codigo' },
+      },
+    },
+  },
+});
+
 const InventarioMovimiento = new EntitySchema({
   name: 'inventariomovimiento',
   tableName: 'inventariomovimiento',
@@ -239,7 +281,6 @@ const InventarioMovimiento = new EntitySchema({
     },
   },
 });
-
 
 const Pedido = new EntitySchema({
   name: 'pedido',
@@ -353,7 +394,6 @@ const DetallePedido = new EntitySchema({
   },
 });
 
-
 module.exports = [
   Usuario,
   Carrito,
@@ -363,6 +403,8 @@ module.exports = [
   CategoriaProducto,
   Material,
   TamanoConfigurador,
+  ColorConfigurador,
+  DisenoGabinete,
   InventarioMovimiento,
   Pedido,
   DetallePedido,

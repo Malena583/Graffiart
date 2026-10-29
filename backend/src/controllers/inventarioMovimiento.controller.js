@@ -1,4 +1,3 @@
-
 const { AppDataSource } = require('../lib/data-source');
 
 const ENTIDADES = {
@@ -57,12 +56,12 @@ async function crearMovimiento(req, res) {
       error: 'El artículo debe ser un material o un gabinete.',
     });
   }
-  if (
-    articuloId === undefined ||
-    articuloId === null ||
-    !Number.isInteger(Number(articuloId)) ||
-    Number(articuloId) <= 0
-  ) {
+  // Los IDs de materiales y gabinetes son UUID (texto), no enteros.
+  const articuloIdLimpio =
+    typeof articuloId === 'string' || typeof articuloId === 'number'
+      ? String(articuloId).trim()
+      : '';
+  if (!articuloIdLimpio || articuloIdLimpio.length > 191) {
     return res.status(400).json({
         error: 'El ID del artículo no es válido.',
     });
@@ -97,7 +96,7 @@ async function crearMovimiento(req, res) {
       const movimientoRepo = manager.getRepository('inventariomovimiento');
 
       const articulo = await articuloRepo.findOne({
-        where: { id: articuloId },
+        where: { id: articuloIdLimpio },
         lock: { mode: 'pessimistic_write' },
       });
 
