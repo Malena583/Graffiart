@@ -23,35 +23,8 @@ const Usuario = new EntitySchema({
     carrito: { type: 'one-to-one', target: 'carrito', inverseSide: 'usuario' },
     disenoguardado: { type: 'one-to-many', target: 'disenoguardado', inverseSide: 'usuario' },
     inventariomovimiento: { type: 'one-to-many', target: 'inventariomovimiento', inverseSide: 'usuario' },
-    tokenacceso: { type: 'one-to-many', target: 'tokenacceso', inverseSide: 'usuario' },
+    pedidos: {type: 'one-to-many', target: 'pedido', inverseSide: 'usuario',},
   },
-});
-
-const TokenAcceso = new EntitySchema({
-  name: 'tokenacceso',
-  tableName: 'tokenacceso',
-  columns: {
-    id,
-    tokenHash: { type: 'varchar', length: 191, unique: true },
-    tipo: { type: 'enum', enum: ['VERIFICACION_EMAIL', 'RECUPERACION_PASSWORD'] },
-    expiraEn: { type: 'datetime', precision: 3 },
-    usado: { type: 'boolean', default: false },
-    creadoEn: { type: 'datetime', precision: 3, createDate: true, default: () => 'CURRENT_TIMESTAMP(3)' },
-    usuarioId: { type: 'varchar', length: 191 },
-  },
-  relations: {
-    usuario: {
-      type: 'many-to-one',
-      target: 'usuario',
-      joinColumn: { name: 'usuarioId' },
-      onDelete: 'CASCADE',
-      inverseSide: 'tokenacceso',
-    },
-  },
-  indices: [
-    { columns: ['expiraEn'] },
-    { columns: ['usuarioId', 'tipo'] },
-  ],
 });
 
 const Carrito = new EntitySchema({
@@ -267,9 +240,122 @@ const InventarioMovimiento = new EntitySchema({
   },
 });
 
+
+const Pedido = new EntitySchema({
+  name: 'pedido',
+  tableName: 'pedido',
+  columns: {
+    id,
+    codigoPedido: { type: 'varchar', length: 30, unique: true },
+    usuarioId: { type: 'varchar', length: 191, nullable: true },
+
+    // Datos del cliente guardados al realizar la compra
+    clienteNombre: { type: 'varchar', length: 191 },
+    clienteEmail: { type: 'varchar', length: 191 },
+    clienteTelefono: { type: 'varchar', length: 50, nullable: true },
+
+    // Datos de envío
+    direccionEnvio: { type: 'varchar', length: 191 },
+    localidad: { type: 'varchar', length: 100 },
+    provincia: { type: 'varchar', length: 100 },
+    codigoPostal: { type: 'varchar', length: 20, nullable: true },
+
+    subtotal: dinero,
+    costoEnvio: { ...dinero, default: 0 },
+    total: dinero,
+
+    estado: {
+      type: 'enum',
+      enum: [
+        'PENDIENTE',
+        'CONFIRMADO',
+        'EN_PREPARACION',
+        'ENVIADO',
+        'ENTREGADO',
+        'CANCELADO',
+      ],
+      default: 'PENDIENTE',
+    },
+
+    estadoPago: {
+      type: 'enum',
+      enum: ['PENDIENTE', 'PAGADO', 'RECHAZADO', 'REEMBOLSADO'],
+      default: 'PENDIENTE',
+    },
+
+    metodoPago: { type: 'varchar', length: 50, nullable: true },
+
+    // Se guarda el hash, nunca el código privado en texto plano
+    codigoSeguimientoHash: {
+      type: 'varchar',
+      length: 191,
+      nullable: true,
+      unique: true,
+    },
+
+    createdAt,
+    updatedAt,
+  },
+  relations: {
+    usuario: {
+      type: 'many-to-one',
+      target: 'usuario',
+      joinColumn: { name: 'usuarioId' },
+      nullable: true,
+      onDelete: 'SET NULL',
+      inverseSide: 'pedidos',
+    },
+    detalles: {
+      type: 'one-to-many',
+      target: 'detallepedido',
+      inverseSide: 'pedido',
+    },
+  },
+});
+
+const DetallePedido = new EntitySchema({
+  name: 'detallepedido',
+  tableName: 'detallepedido',
+  columns: {
+    id,
+    pedidoId: { type: 'varchar', length: 191 },
+    gabineteId: { type: 'varchar', length: 191, nullable: true },
+
+    tipo: {
+      type: 'enum',
+      enum: ['GABINETE', 'PERSONALIZADO'],
+    },
+
+    // Copia de los datos del artículo al momento de comprar
+    nombreArticulo: { type: 'varchar', length: 191 },
+    cantidad: { type: 'int' },
+    precioUnitario: dinero,
+    subtotal: dinero,
+
+    // Configuración del gabinete personalizado en formato JSON
+    configuracion: { type: 'longtext', nullable: true },
+  },
+  relations: {
+    pedido: {
+      type: 'many-to-one',
+      target: 'pedido',
+      joinColumn: { name: 'pedidoId' },
+      onDelete: 'CASCADE',
+      inverseSide: 'detalles',
+    },
+    gabinete: {
+      type: 'many-to-one',
+      target: 'gabinete',
+      joinColumn: { name: 'gabineteId' },
+      nullable: true,
+      onDelete: 'SET NULL',
+    },
+  },
+});
+
+
 module.exports = [
   Usuario,
-  TokenAcceso,
   Carrito,
   ItemCarrito,
   DisenoGuardado,
@@ -278,4 +364,6 @@ module.exports = [
   Material,
   TamanoConfigurador,
   InventarioMovimiento,
+  Pedido,
+  DetallePedido,
 ];

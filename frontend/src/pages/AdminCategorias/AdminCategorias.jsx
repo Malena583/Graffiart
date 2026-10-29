@@ -1,4 +1,4 @@
-//frontend/src/pages/AdminCategorias/AdminCategorias.jsx
+
 import { useState } from "react";
 import AdminPage from "../../components/AdminPage/AdminPage";
 import Button from "../../components/Button/Button";
@@ -15,12 +15,15 @@ import CategoriaFormModal from "./CategoriaFormModal";
 
 const M = MESSAGES.admin.categorias;
 
-// Errores de la base de datos que indican que la categoría está en uso
 const IN_USE_ERROR = /foreign key|constraint|referenc|cannot delete/i;
 
 const mapError = (error, fallback) => {
   const backendMessage = error?.response?.data?.error;
-  if (backendMessage && IN_USE_ERROR.test(backendMessage)) return M.inUseError;
+
+  if (backendMessage && IN_USE_ERROR.test(backendMessage)) {
+    return M.inUseError;
+  }
+
   return getErrorMessage(error, fallback);
 };
 
@@ -44,7 +47,7 @@ const AdminCategorias = () => {
   const [deleting, setDeleting] = useState(false);
 
   const openCreate = () => {
-    crud.cancelEdit(); // limpia el formulario y los avisos anteriores
+    crud.cancelEdit();
     setFormOpen(true);
   };
 
@@ -63,6 +66,7 @@ const AdminCategorias = () => {
     setSaving(true);
     const saved = await crud.onSubmit(event);
     setSaving(false);
+
     if (saved) setFormOpen(false);
   };
 
@@ -71,6 +75,8 @@ const AdminCategorias = () => {
   };
 
   const handleDelete = async () => {
+    if (!categoryToDelete) return;
+
     setDeleting(true);
     await crud.remove(categoryToDelete.id);
     setDeleting(false);
@@ -81,13 +87,15 @@ const AdminCategorias = () => {
     { header: CATEGORIA_FORM.columns.name, key: "nombre" },
     {
       header: CATEGORIA_FORM.columns.description,
-      render: (c) => (
-        <span className="line-clamp-2 max-w-md">{c.descripcion || "-"}</span>
+      render: (categoria) => (
+        <span className="line-clamp-2 max-w-md">
+          {categoria.descripcion || "-"}
+        </span>
       ),
     },
     {
       header: CATEGORIA_FORM.columns.products,
-      render: (c) => c._count?.productos || 0,
+      render: (categoria) => categoria._count?.productos || 0,
     },
     {
       header: CATEGORIA_FORM.columns.actions,
@@ -100,6 +108,7 @@ const AdminCategorias = () => {
           >
             {MESSAGES.actions.edit}
           </Button>
+
           <Button
             variant="linkDelete"
             onClick={() => setCategoryToDelete(categoria)}
@@ -121,7 +130,10 @@ const AdminCategorias = () => {
       actionLabel={CATEGORIA_FORM.createButton}
       onAction={openCreate}
     >
-      {!formOpen && crud.error && <Feedback type="error">{crud.error}</Feedback>}
+      {!formOpen && crud.error && (
+        <Feedback type="error">{crud.error}</Feedback>
+      )}
+
       {crud.message && <Feedback type="success">{crud.message}</Feedback>}
 
       <DataTable
@@ -151,6 +163,7 @@ const AdminCategorias = () => {
           loading={deleting}
         >
           <p>{M.confirmDeleteText(categoryToDelete.nombre)}</p>
+
           {productCount > 0 && (
             <p className="mt-2 font-medium text-amber-800">
               {M.withProducts(productCount)}

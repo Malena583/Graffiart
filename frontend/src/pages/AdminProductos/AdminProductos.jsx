@@ -24,12 +24,16 @@ import ProductoFormModal from "./ProductoFormModal";
 
 const M = MESSAGES.admin.productos;
 
-// Errores de la base de datos que indican que el producto está en uso
+// Errores de la base de datos que indican que el producto está en uso.
 const IN_USE_ERROR = /foreign key|constraint|referenc|cannot delete/i;
 
 const mapError = (error, fallback) => {
   const backendMessage = error?.response?.data?.error;
-  if (backendMessage && IN_USE_ERROR.test(backendMessage)) return M.inUseError;
+
+  if (backendMessage && IN_USE_ERROR.test(backendMessage)) {
+    return M.inUseError;
+  }
+
   return getErrorMessage(error, fallback);
 };
 
@@ -41,7 +45,9 @@ const toFormValues = (producto) => ({
   stockMinimo: producto.stockMinimo ?? 0,
   tamano: producto.tamano || PRODUCTO_FORM.initialValues.tamano,
   formato: producto.formato || PRODUCTO_FORM.initialValues.formato,
-  materialChasis: producto.materialChasis || PRODUCTO_FORM.initialValues.materialChasis,
+  materialChasis:
+    producto.materialChasis ||
+    PRODUCTO_FORM.initialValues.materialChasis,
   panel: producto.panel || PRODUCTO_FORM.initialValues.panel,
   categoriaId: producto.categoriaId || "",
   imagen: "",
@@ -58,11 +64,11 @@ const AdminProductos = () => {
     messages: M,
     mapError,
   });
-  const { data: categorias, error: categoriasError } = useFetch(
-    "categorias",
-    listarCategorias,
-    M.loadError,
-  );
+
+  const {
+    data: categorias,
+    error: categoriasError,
+  } = useFetch("categorias", listarCategorias, M.loadError);
 
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -71,7 +77,7 @@ const AdminProductos = () => {
   const [deleting, setDeleting] = useState(false);
 
   const openCreate = () => {
-    crud.cancelEdit(); // limpia el formulario y los avisos anteriores
+    crud.cancelEdit();
     setImageError("");
     setFormOpen(true);
   };
@@ -84,32 +90,43 @@ const AdminProductos = () => {
 
   const closeForm = () => {
     if (saving) return;
+
     crud.cancelEdit();
     setImageError("");
     setFormOpen(false);
   };
 
   const handleSubmit = async (event) => {
-    // Al crear, la imagen es obligatoria (así lo exige el backend).
-    // Al editar no hace falta elegir otra: se conserva la actual.
+    // Al crear, la imagen es obligatoria.
+    // Al editar, se conserva la imagen actual si no se cambia.
     if (!crud.editingId && !crud.values.imagen) {
       event.preventDefault();
       setImageError(PRODUCTO_FORM.imageRequired);
       return;
     }
+
     setImageError("");
     setSaving(true);
+
     const saved = await crud.onSubmit(event);
+
     setSaving(false);
-    // Si falla, el modal queda abierto con los datos que el usuario escribió
-    if (saved) setFormOpen(false);
+
+    // Si falla, el modal queda abierto con los datos ingresados.
+    if (saved) {
+      setFormOpen(false);
+    }
   };
 
   const closeDelete = () => {
-    if (!deleting) setProductToDelete(null);
+    if (!deleting) {
+      setProductToDelete(null);
+    }
   };
 
   const handleDelete = async () => {
+    if (!productToDelete) return;
+
     setDeleting(true);
     await crud.remove(productToDelete.id);
     setDeleting(false);
@@ -130,49 +147,64 @@ const AdminProductos = () => {
             }}
           />
         ) : (
-          <span className="text-xs text-neutral-500">{PRODUCTO_FORM.noImage}</span>
+          <span className="text-xs text-neutral-500">
+            {PRODUCTO_FORM.noImage}
+          </span>
         ),
     },
     {
       header: PRODUCTO_FORM.columns.product,
-      render: (p) => (
+      render: (producto) => (
         <div>
-          <div className="font-medium text-neutral-900">{p.nombre}</div>
-          <div className="text-xs text-neutral-500">{p.marca}</div>
+          <div className="font-medium text-neutral-900">
+            {producto.nombre}
+          </div>
+          <div className="text-xs text-neutral-500">
+            {producto.marca}
+          </div>
         </div>
       ),
     },
     {
       header: PRODUCTO_FORM.columns.category,
-      render: (p) => p.categoria?.nombre || PRODUCTO_FORM.noCategory,
+      render: (producto) =>
+        producto.categoria?.nombre || PRODUCTO_FORM.noCategory,
     },
     {
       header: PRODUCTO_FORM.columns.price,
-      render: (p) => formatPrice(p.costoUnitario),
+      render: (producto) => formatPrice(producto.costoUnitario),
     },
-    { header: PRODUCTO_FORM.columns.stock, key: "stockActual" },
+    {
+      header: PRODUCTO_FORM.columns.stock,
+      key: "stockActual",
+    },
     {
       header: PRODUCTO_FORM.columns.status,
-      render: (p) => (
+      render: (producto) => (
         <span
           className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
-            p.activo
+            producto.activo
               ? "bg-emerald-50 text-emerald-800"
               : "bg-neutral-100 text-neutral-600"
           }`}
         >
-          {p.activo ? PRODUCTO_FORM.statusActive : PRODUCTO_FORM.statusInactive}
+          {producto.activo
+            ? PRODUCTO_FORM.statusActive
+            : PRODUCTO_FORM.statusInactive}
         </span>
       ),
     },
     {
       header: PRODUCTO_FORM.columns.features,
-      render: (p) => (
+      render: (producto) => (
         <div className="text-xs">
-          <div>{TAMANOS[p.tamano] || p.tamano}</div>
-          <div>{FORMATOS[p.formato] || p.formato}</div>
-          <div>{MATERIALES_CHASIS[p.materialChasis] || p.materialChasis}</div>
-          <div>{PANELES[p.panel] || p.panel}</div>
+          <div>{TAMANOS[producto.tamano] || producto.tamano}</div>
+          <div>{FORMATOS[producto.formato] || producto.formato}</div>
+          <div>
+            {MATERIALES_CHASIS[producto.materialChasis] ||
+              producto.materialChasis}
+          </div>
+          <div>{PANELES[producto.panel] || producto.panel}</div>
         </div>
       ),
     },
@@ -187,6 +219,7 @@ const AdminProductos = () => {
           >
             {MESSAGES.actions.edit}
           </Button>
+
           <Button
             variant="linkDelete"
             onClick={() => setProductToDelete(producto)}
@@ -200,16 +233,19 @@ const AdminProductos = () => {
   ];
 
   return (
+    <AdminPage
+      title={PRODUCTO_FORM.pageTitle}
+      subtitle={M.subtitle}
+      actionLabel={PRODUCTO_FORM.createButton}
+      onAction={openCreate}
+    >
+      {!formOpen && crud.error && (
+        <Feedback type="error">{crud.error}</Feedback>
+      )}
 
-      <AdminPage
-        title={PRODUCTO_FORM.pageTitle}
-        subtitle={M.subtitle}
-        actionLabel={PRODUCTO_FORM.createButton}
-        onAction={openCreate}
-      >
-
-      {!formOpen && crud.error && <Feedback type="error">{crud.error}</Feedback>}
-      {crud.message && <Feedback type="success">{crud.message}</Feedback>}
+      {crud.message && (
+        <Feedback type="success">{crud.message}</Feedback>
+      )}
 
       <DataTable
         columns={columns}

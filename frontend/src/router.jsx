@@ -4,6 +4,7 @@ import { ROUTES } from "./constants/ROUTES";
 import Layout from "./components/Layout/Layout";
 import AdminLayout from "./components/AdminLayout/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+
 import {
   Admin,
   AdminAccesorios,
@@ -22,7 +23,7 @@ import {
 } from "./pages";
 
 export const router = createBrowserRouter([
-  // Panel admin: layout propio, SIN el Navbar/Footer públicos
+  // Panel de administracion
   {
     element: <ProtectedRoute role={ROLES.admin} />,
     children: [
@@ -40,7 +41,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Sitio público
+  // Sitio publico
   {
     element: <Layout />,
     children: [
@@ -49,17 +50,14 @@ export const router = createBrowserRouter([
       { path: ROUTES.products, element: <Productos /> },
       { path: ROUTES.productDetailPattern, element: <ProductoDetalle /> },
       { path: ROUTES.cart, element: <Carrito /> },
-
       { path: ROUTES.login, element: <Login /> },
       { path: ROUTES.register, element: <Register /> },
       { path: ROUTES.forgotPassword, element: <Login /> },
       { path: ROUTES.resetPassword, element: <Login /> },
-
       {
         element: <ProtectedRoute />,
         children: [{ path: ROUTES.profile, element: <Perfil /> }],
       },
-
       { path: "*", element: <Navigate to={ROUTES.home} replace /> },
     ],
   },

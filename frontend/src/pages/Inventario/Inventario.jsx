@@ -45,7 +45,7 @@ const Inventario = () => {
   const [deleting, setDeleting] = useState(false);
 
   const openCreate = () => {
-    crud.cancelEdit(); // limpia el formulario y los avisos anteriores
+    crud.cancelEdit();
     setFormOpen(true);
   };
 
@@ -62,10 +62,13 @@ const Inventario = () => {
 
   const handleSubmit = async (event) => {
     setSaving(true);
-    const saved = await crud.onSubmit(event);
-    setSaving(false);
-    // Si falla, el modal queda abierto con los datos que el usuario escribió
-    if (saved) setFormOpen(false);
+
+    try {
+      const saved = await crud.onSubmit(event);
+      if (saved) setFormOpen(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const closeDelete = () => {
@@ -73,10 +76,16 @@ const Inventario = () => {
   };
 
   const handleDelete = async () => {
+    if (!materialToDelete || deleting) return;
+
     setDeleting(true);
-    await crud.remove(materialToDelete.id);
-    setDeleting(false);
-    setMaterialToDelete(null);
+
+    try {
+      await crud.remove(materialToDelete.id);
+      setMaterialToDelete(null);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const lowStock = crud.items.filter(
@@ -84,17 +93,27 @@ const Inventario = () => {
   );
 
   const columns = [
-    { header: MATERIAL_FORM.columns.name, key: "nombre" },
-    { header: MATERIAL_FORM.columns.code, key: "codigo" },
+    {
+      header: MATERIAL_FORM.columns.name,
+      key: "nombre",
+    },
+    {
+      header: MATERIAL_FORM.columns.code,
+      key: "codigo",
+    },
     {
       header: MATERIAL_FORM.columns.category,
-      render: (m) => (
+      render: (material) => (
         <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700">
-          {m.categoria}
+          {material.categoria}
         </span>
       ),
     },
-    { header: MATERIAL_FORM.columns.stock, render: (m) => `${m.stockActual} ${m.unidadMedida}` },
+    {
+      header: MATERIAL_FORM.columns.stock,
+      render: (material) =>
+        `${material.stockActual} ${material.unidadMedida}`,
+    },
     {
       header: MATERIAL_FORM.columns.actions,
       render: (material) => (
@@ -106,6 +125,7 @@ const Inventario = () => {
           >
             {MESSAGES.actions.edit}
           </Button>
+
           <Button
             variant="linkDelete"
             onClick={() => setMaterialToDelete(material)}
@@ -125,18 +145,25 @@ const Inventario = () => {
       actionLabel={MATERIAL_FORM.createButton}
       onAction={openCreate}
     >
-      {!formOpen && crud.error && <Feedback type="error">{crud.error}</Feedback>}
-      {crud.message && <Feedback type="success">{crud.message}</Feedback>}
+      {!formOpen && crud.error && (
+        <Feedback type="error">{crud.error}</Feedback>
+      )}
+
+      {crud.message && (
+        <Feedback type="success">{crud.message}</Feedback>
+      )}
 
       {lowStock.length > 0 && (
         <Feedback type="warning">
           <h2 className="mb-2 font-semibold">{M.lowStock}</h2>
+
           <ul className="space-y-1">
             {lowStock.map((material) => (
               <li key={material.id}>
                 <strong>{material.nombre}</strong>: {M.currentStock}{" "}
-                {material.stockActual} {material.unidadMedida}, {M.minStock}{" "}
-                {material.stockMinimo} {material.unidadMedida}.
+                {material.stockActual} {material.unidadMedida},{" "}
+                {M.minStock} {material.stockMinimo}{" "}
+                {material.unidadMedida}.
               </li>
             ))}
           </ul>
@@ -151,8 +178,18 @@ const Inventario = () => {
 
       {formOpen && (
         <EntityFormModal
-          title={crud.editingId ? MATERIAL_FORM.editTitle : MATERIAL_FORM.createTitle}
-          fields={MATERIAL_FORM.fields}
+          title={
+            crud.editingId
+              ? MATERIAL_FORM.editTitle
+              : MATERIAL_FORM.createTitle
+          }
+          fields={
+            crud.editingId
+              ? MATERIAL_FORM.fields.filter(
+                  (field) => field.name !== "stockActual",
+                )
+              : MATERIAL_FORM.fields
+          }
           values={crud.values}
           onChange={crud.onChange}
           onSubmit={handleSubmit}

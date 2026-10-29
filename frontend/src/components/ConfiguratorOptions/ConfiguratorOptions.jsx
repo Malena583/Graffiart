@@ -19,12 +19,16 @@ const CategorySection = ({ categoria, seleccion, onSeleccionar }) => {
           aria-hidden="true"
         />
       </summary>
+
       <div className="space-y-3 pb-4">
         {categoria.opciones.length === 0 ? (
-          <p className="text-sm text-neutral-500">{categoria.mensajeVacio}</p>
+          <p className="text-sm text-neutral-500">
+            {categoria.mensajeVacio}
+          </p>
         ) : (
           categoria.opciones.map((opcion) => {
             const selected = selectedIds.includes(opcion.id);
+
             return (
               <div key={opcion.id} className="rounded-lg">
                 <button
@@ -43,11 +47,13 @@ const CategorySection = ({ categoria, seleccion, onSeleccionar }) => {
                   }`}
                 >
                   <span className="block font-medium">{opcion.label}</span>
+
                   {opcion.descripcion && (
                     <span className="mt-1 block text-xs opacity-75">
                       {opcion.descripcion}
                     </span>
                   )}
+
                   <span
                     className={`mt-1 block text-xs ${
                       opcion.disponible
@@ -73,8 +79,6 @@ const ConfiguratorOptions = ({
   categorias,
   seleccion,
   onSeleccionar,
-  nombreDiseno,
-  onNombreDisenoChange,
   loading,
   error,
 }) => (
@@ -82,9 +86,11 @@ const ConfiguratorOptions = ({
     <h2 className="mb-1 text-base font-semibold text-neutral-900">
       {CONFIGURATOR_TEXTS.optionsTitle}
     </h2>
+
     <p className="mb-2 text-xs text-neutral-500">
       {CONFIGURATOR_TEXTS.optionsSubtitle}
     </p>
+
     {loading ? (
       <p className="py-4 text-sm text-neutral-500" role="status">
         {CONFIGURATOR_TEXTS.loading}
@@ -94,41 +100,14 @@ const ConfiguratorOptions = ({
         {error}
       </p>
     ) : (
-      <>
-        {categorias.map((categoria) => (
-          <CategorySection
-            key={categoria.id}
-            categoria={categoria}
-            seleccion={seleccion}
-            onSeleccionar={onSeleccionar}
-          />
-        ))}
-        <details className="group">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-4 text-sm font-semibold text-neutral-900 [&::-webkit-details-marker]:hidden">
-            {CONFIGURATOR_TEXTS.designName}
-            <ChevronDown
-              size={16}
-              className="shrink-0 transition-transform group-open:rotate-180"
-              aria-hidden="true"
-            />
-          </summary>
-          <label
-            className="block pb-4 text-xs font-medium text-neutral-700"
-            htmlFor="configurator-design-name"
-          >
-            {CONFIGURATOR_TEXTS.designName}
-            <input
-              id="configurator-design-name"
-              type="text"
-              value={nombreDiseno}
-              onChange={(event) => onNombreDisenoChange(event.target.value)}
-              maxLength={120}
-              placeholder={CONFIGURATOR_TEXTS.designNamePlaceholder}
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-            />
-          </label>
-        </details>
-      </>
+      categorias.map((categoria) => (
+        <CategorySection
+          key={categoria.id}
+          categoria={categoria}
+          seleccion={seleccion}
+          onSeleccionar={onSeleccionar}
+        />
+      ))
     )}
   </aside>
 );

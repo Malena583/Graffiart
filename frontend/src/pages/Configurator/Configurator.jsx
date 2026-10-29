@@ -1,3 +1,4 @@
+
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import ConfiguratorOptions from "../../components/ConfiguratorOptions/ConfiguratorOptions";
@@ -20,6 +21,7 @@ import useFetch from "../../hooks/useFetch";
 import useConfigurador from "../../hooks/useConfigurador";
 
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
 const STEPS = [
   CONFIGURATOR_TEXTS.stepUpload,
   CONFIGURATOR_TEXTS.stepOptions,
@@ -32,14 +34,18 @@ const getSelectedIds = (value) =>
 const Configurator = () => {
   const { seleccion, seleccionar, cargarDiseno } = useConfigurador();
   const usuario = useAuthStore((state) => state.usuario);
-  const agregarConfiguracion = useCartStore((state) => state.agregarConfiguracion);
+  const agregarConfiguracion = useCartStore(
+    (state) => state.agregarConfiguracion,
+  );
   const imageInput = useRef(null);
+
   const [step, setStep] = useState(1);
   const [imagen, setImagen] = useState("");
   const [imageError, setImageError] = useState("");
   const [adding, setAdding] = useState(false);
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
+
   const {
     data: tamanos,
     loading: tamanosLoading,
@@ -50,6 +56,7 @@ const Configurator = () => {
     listarTamanosConfigurador,
     CONFIGURATOR_TEXTS.loadError,
   );
+
   const {
     data: materiales,
     loading: materialesLoading,
@@ -60,9 +67,9 @@ const Configurator = () => {
     listarMateriales,
     CONFIGURATOR_TEXTS.loadError,
   );
+
   const loading = tamanosLoading || materialesLoading;
   const loadError = tamanosError || materialesError;
-  const nombreDiseno = seleccion.nombreDiseno ?? "";
 
   const categories = useMemo(() => {
     const sizeOptions = (tamanos ?? []).map((tamano) => ({
@@ -87,30 +94,36 @@ const Configurator = () => {
       disponible: tamano.activo,
       estado: formatPrice(tamano.precioBase),
     }));
+
     const inventory = materiales ?? [];
+
     const toInventoryOption = (material) => {
       const stock = Number(material.stockActual);
       const hasPrice = material.costoUnitario != null;
       const available = material.activo && stock > 0 && hasPrice;
+
       const status = !material.activo
         ? CONFIGURATOR_TEXTS.inactive
         : stock < 1
           ? CONFIGURATOR_TEXTS.unavailable
           : !hasPrice
             ? CONFIGURATOR_TEXTS.noPrice
-            : `${CONFIGURATOR_TEXTS.availableStock(stock)} · ${formatPrice(material.costoUnitario)}`;
+            : `${CONFIGURATOR_TEXTS.availableStock(stock)} Â· ${formatPrice(material.costoUnitario)}`;
+
       return {
         id: material.id,
         label: material.nombre,
-        descripcion: `${material.categoria} · ${material.unidadMedida}`,
+        descripcion: `${material.categoria} Â· ${material.unidadMedida}`,
         precio: hasPrice ? Number(material.costoUnitario) : 0,
         disponible: available,
         estado: status,
       };
     };
+
     const materials = inventory.filter(
       (material) => material.categoria !== "ACCESORIO",
     );
+
     const accessories = inventory.filter(
       (material) => material.categoria === "ACCESORIO",
     );
@@ -118,7 +131,7 @@ const Configurator = () => {
     return [
       {
         id: "tamano",
-        titulo: "Tamaño",
+        titulo: "TamaÃ±o",
         tipo: "simple",
         opciones: sizeOptions,
         mensajeVacio: CONFIGURATOR_TEXTS.noBaseOptions,
@@ -149,21 +162,28 @@ const Configurator = () => {
 
   const sizeOptions =
     categories.find((category) => category.id === "tamano")?.opciones ?? [];
+
   const materialOptions =
     categories.find((category) => category.id === "materiales")?.opciones ?? [];
+
   const accessoryOptions =
     categories.find((category) => category.id === "accesorios")?.opciones ?? [];
+
   const selectedSize = tamanos?.find(
     (tamano) => tamano.codigo === seleccion.tamano,
   );
+
   const selectedMaterialIds = getSelectedIds(seleccion.materiales);
   const selectedAccessoryIds = getSelectedIds(seleccion.accesorios);
+
   const selectedMaterials = selectedMaterialIds
     .map((id) => materialOptions.find((option) => option.id === id))
     .filter(Boolean);
+
   const selectedAccessories = selectedAccessoryIds
     .map((id) => accessoryOptions.find((option) => option.id === id))
     .filter(Boolean);
+
   const savedConfiguration = {
     ...seleccion,
     tamano: seleccion.tamano,
@@ -171,15 +191,16 @@ const Configurator = () => {
     materialesNombres: selectedMaterials.map((option) => option.label),
     accesoriosNombres: selectedAccessories.map((option) => option.label),
   };
+
   const total = [
     ...sizeOptions.filter((option) => option.id === seleccion.tamano),
     ...selectedMaterials,
     ...selectedAccessories,
   ].reduce((sum, option) => sum + option.precio, 0);
+
   const canAdd = Boolean(
     !loading &&
       !loadError &&
-      nombreDiseno.trim() &&
       sizeOptions.find((option) => option.id === seleccion.tamano)?.disponible &&
       selectedMaterials.length === selectedMaterialIds.length &&
       selectedMaterials.length > 0 &&
@@ -191,37 +212,50 @@ const Configurator = () => {
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
+
     if (!file) return;
+
     setImageError("");
+
     if (!ACCEPTED_IMAGE_TYPES.has(file.type)) {
       setImageError(CONFIGURATOR_TEXTS.invalidImage);
       return;
     }
 
     const reader = new FileReader();
+
     reader.onload = () => {
       if (typeof reader.result !== "string") {
         setImageError(CONFIGURATOR_TEXTS.imageReadError);
         return;
       }
+
       const previewImage = new Image();
+
       previewImage.onload = () => {
         setImagen(reader.result);
         if (step === 1) setStep(2);
       };
+
       previewImage.onerror = () =>
         setImageError(CONFIGURATOR_TEXTS.imageReadError);
+
       previewImage.src = reader.result;
     };
-    reader.onerror = () => setImageError(CONFIGURATOR_TEXTS.imageReadError);
+
+    reader.onerror = () =>
+      setImageError(CONFIGURATOR_TEXTS.imageReadError);
+
     reader.readAsDataURL(file);
   };
 
   const handleAddToCart = async () => {
     if (!canAdd || !selectedSize) return;
+
     setAdding(true);
     setActionError("");
     setSuccess("");
+
     const disponibilidadPayload = {
       tamanoId: selectedSize.codigo,
       materialIds: selectedMaterialIds,
@@ -229,7 +263,10 @@ const Configurator = () => {
     };
 
     try {
-      const availability = await validarConfiguracion(disponibilidadPayload);
+      const availability = await validarConfiguracion(
+        disponibilidadPayload,
+      );
+
       if (
         Math.round(Number(availability.total) * 100) !==
         Math.round(total * 100)
@@ -240,6 +277,7 @@ const Configurator = () => {
             formatPrice(total),
           ),
         );
+
         reloadTamanos();
         reloadMateriales();
         return;
@@ -251,30 +289,43 @@ const Configurator = () => {
         tamanoNombre: selectedSize.nombre,
         materiales: selectedMaterials.map((option) => option.label),
         accesorios: selectedAccessories.map((option) => option.label),
-        nombreDiseno: nombreDiseno.trim(),
         imagen,
       };
 
       const resumen = [
         `${CONFIGURATOR_TEXTS.sizeLabel}: ${selectedSize.nombre}`,
-        ...selectedMaterials.map((option) => `${CONFIGURATOR_TEXTS.materialLabel}: ${option.label}`),
-        ...selectedAccessories.map((option) => `${CONFIGURATOR_TEXTS.accessoriesLabel}: ${option.label}`),
+        ...selectedMaterials.map(
+          (option) =>
+            `${CONFIGURATOR_TEXTS.materialLabel}: ${option.label}`,
+        ),
+        ...selectedAccessories.map(
+          (option) =>
+            `${CONFIGURATOR_TEXTS.accessoriesLabel}: ${option.label}`,
+        ),
       ].join("\n");
+
       agregarConfiguracion(
-        { id: selectedSize.codigo, nombre: nombreDiseno.trim(), tamano: selectedSize.codigo },
+        {
+          id: selectedSize.codigo,
+          nombre: `Gabinete personalizado - ${selectedSize.nombre}`,
+          tamano: selectedSize.codigo,
+        },
         { ...configuracion, resumen },
         availability.total,
       );
+
       setSuccess(CONFIGURATOR_TEXTS.added);
     } catch (error) {
       const unavailable = error.response?.data?.noDisponibles
         ?.map((option) => `${option.nombre}: ${option.motivo}`)
         .join(" ");
+
       setActionError(
         unavailable ||
           error.response?.data?.error ||
           CONFIGURATOR_TEXTS.availabilityError,
       );
+
       reloadTamanos();
       reloadMateriales();
     } finally {
@@ -298,12 +349,6 @@ const Configurator = () => {
         setSuccess("");
         seleccionar(...args);
       }}
-      nombreDiseno={nombreDiseno}
-      onNombreDisenoChange={(value) => {
-        setActionError("");
-        setSuccess("");
-        seleccionar("nombreDiseno", value, false);
-      }}
       loading={loading}
       error={loadError}
     />
@@ -324,6 +369,7 @@ const Configurator = () => {
             const number = index + 1;
             const active = step === number;
             const complete = step > number;
+
             return (
               <li
                 key={label}
@@ -336,12 +382,13 @@ const Configurator = () => {
                       : "bg-white text-neutral-500"
                 }`}
               >
-                <span>{complete ? "✓" : number}</span>
+                <span>{complete ? "âœ“" : number}</span>
                 <span>{label}</span>
               </li>
             );
           })}
         </ol>
+
         <Link
           to={ROUTES.home}
           className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-white"
@@ -351,7 +398,10 @@ const Configurator = () => {
       </div>
 
       {imageError && <Feedback type="error">{imageError}</Feedback>}
-      {step === 3 && loadError && <Feedback type="error">{loadError}</Feedback>}
+      {step === 3 && loadError && (
+        <Feedback type="error">{loadError}</Feedback>
+      )}
+
       <input
         ref={imageInput}
         type="file"
@@ -367,9 +417,11 @@ const Configurator = () => {
             <h2 className="text-xl font-semibold text-neutral-900">
               {CONFIGURATOR_TEXTS.stepUpload}
             </h2>
+
             <p className="mt-2 text-sm text-neutral-600">
               {CONFIGURATOR_TEXTS.uploadHint}
             </p>
+
             <button
               type="button"
               onClick={() => imageInput.current?.click()}
@@ -377,6 +429,7 @@ const Configurator = () => {
             >
               {CONFIGURATOR_TEXTS.selectFile}
             </button>
+
             <button
               type="button"
               onClick={() => setStep(2)}
@@ -385,6 +438,7 @@ const Configurator = () => {
               {CONFIGURATOR_TEXTS.skipImage}
             </button>
           </div>
+
           {imagen ? (
             <img
               src={imagen}
@@ -411,14 +465,15 @@ const Configurator = () => {
                 imagen={imagen}
                 onReplaceImage={() => imageInput.current?.click()}
               />
+
               <div className="max-h-[calc(100vh-12rem)] overflow-y-auto rounded-xl">
                 {renderOptions()}
+
                 {usuario && (
                   <div className="mt-5">
                     <SavedDesigns
                       seleccion={savedConfiguration}
                       onLoadDesign={handleLoadDesign}
-                      nombreExterno={nombreDiseno}
                     />
                   </div>
                 )}
@@ -431,16 +486,18 @@ const Configurator = () => {
                 categorias={categories}
                 imagen=""
               />
+
               {renderOptions()}
+
               {usuario && (
                 <SavedDesigns
                   seleccion={savedConfiguration}
                   onLoadDesign={handleLoadDesign}
-                  nombreExterno={nombreDiseno}
                 />
               )}
             </div>
           )}
+
           <div className="mb-3 flex justify-between">
             <button
               type="button"
@@ -450,6 +507,7 @@ const Configurator = () => {
               {CONFIGURATOR_TEXTS.back}
             </button>
           </div>
+
           {loadError && <Feedback type="error">{loadError}</Feedback>}
         </>
       )}
@@ -462,17 +520,13 @@ const Configurator = () => {
             imagen={imagen}
             onReplaceImage={() => imageInput.current?.click()}
           />
+
           <div className="rounded-xl border border-neutral-200 bg-white p-6">
             <h2 className="mb-5 text-lg font-semibold text-neutral-900">
               {CONFIGURATOR_TEXTS.reviewTitle}
             </h2>
+
             <dl className="space-y-4 text-sm">
-              <div>
-                <dt className="font-medium text-neutral-500">
-                  {CONFIGURATOR_TEXTS.designName}
-                </dt>
-                <dd className="mt-1 text-neutral-900">{nombreDiseno}</dd>
-              </div>
               <div>
                 <dt className="font-medium text-neutral-500">
                   {CONFIGURATOR_TEXTS.sizeLabel}
@@ -483,16 +537,20 @@ const Configurator = () => {
                     : CONFIGURATOR_TEXTS.noSelection}
                 </dd>
               </div>
+
               <div>
                 <dt className="font-medium text-neutral-500">
                   {CONFIGURATOR_TEXTS.materialLabel}
                 </dt>
                 <dd className="mt-1 text-neutral-900">
                   {selectedMaterials.length
-                    ? selectedMaterials.map((option) => option.label).join(", ")
+                    ? selectedMaterials
+                        .map((option) => option.label)
+                        .join(", ")
                     : CONFIGURATOR_TEXTS.noSelection}
                 </dd>
               </div>
+
               <div>
                 <dt className="font-medium text-neutral-500">
                   {CONFIGURATOR_TEXTS.colorLabel}
@@ -501,16 +559,20 @@ const Configurator = () => {
                   {CONFIGURATOR_TEXTS.noColorOptions}
                 </dd>
               </div>
+
               <div>
                 <dt className="font-medium text-neutral-500">
                   {CONFIGURATOR_TEXTS.accessoriesLabel}
                 </dt>
                 <dd className="mt-1 text-neutral-900">
                   {selectedAccessories.length
-                    ? selectedAccessories.map((option) => option.label).join(", ")
+                    ? selectedAccessories
+                        .map((option) => option.label)
+                        .join(", ")
                     : CONFIGURATOR_TEXTS.noExtras}
                 </dd>
               </div>
+
               <div className="border-t border-neutral-200 pt-4">
                 <dt className="font-medium text-neutral-500">
                   {CONFIGURATOR_TEXTS.estimatedPrice}
@@ -520,6 +582,7 @@ const Configurator = () => {
                 </dd>
               </div>
             </dl>
+
             {usuario && (
               <div className="mt-5 border-t border-neutral-200 pt-5">
                 <SavedDesigns
@@ -531,6 +594,7 @@ const Configurator = () => {
               </div>
             )}
           </div>
+
           <button
             type="button"
             onClick={() => setStep(2)}
@@ -541,7 +605,7 @@ const Configurator = () => {
         </section>
       )}
 
-      {step === 2 && (
+      {(step === 2 || step === 3) && (
         <ConfiguratorSummary
           total={total}
           loading={loading || Boolean(loadError)}
@@ -555,28 +619,15 @@ const Configurator = () => {
           success={success}
           canAdd={canAdd}
           step={step}
-          onContinue={() => {
-            setActionError("");
-            setSuccess("");
-            setStep(3);
-          }}
-          onAdd={handleAddToCart}
-        />
-      )}
-      {step === 3 && (
-        <ConfiguratorSummary
-          total={total}
-          loading={loading || Boolean(loadError)}
-          adding={adding}
-          error={
-            actionError ||
-            (!loading && !loadError && !canAdd
-              ? CONFIGURATOR_TEXTS.configurationRequired
-              : "")
+          onContinue={
+            step === 2
+              ? () => {
+                  setActionError("");
+                  setSuccess("");
+                  setStep(3);
+                }
+              : undefined
           }
-          success={success}
-          canAdd={canAdd}
-          step={step}
           onAdd={handleAddToCart}
         />
       )}
