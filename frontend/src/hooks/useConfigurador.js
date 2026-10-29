@@ -11,30 +11,23 @@ const useConfigurador = () => {
     setSeleccion((prev) => {
       if (!esMultiple) return { ...prev, [categoriaId]: opcionId };
 
-      const actuales = prev[categoriaId] || [];
+      const actuales = Array.isArray(prev[categoriaId])
+        ? prev[categoriaId]
+        : prev[categoriaId]
+          ? [prev[categoriaId]]
+          : [];
       const yaEstaba = actuales.includes(opcionId);
       const nuevos = yaEstaba
         ? actuales.filter((id) => id !== opcionId)
         : [...actuales, opcionId];
 
-      // si se deselecciona, limpiamos su ubicación
-      const ubicaciones = { ...(prev.ubicaciones || {}) };
-      if (yaEstaba) delete ubicaciones[opcionId];
-
-      return { ...prev, [categoriaId]: nuevos, ubicaciones };
+      return { ...prev, [categoriaId]: nuevos };
     });
-  };
-
-  const ubicar = (accesorioId, ubicacionId) => {
-    setSeleccion((prev) => ({
-      ...prev,
-      ubicaciones: { ...(prev.ubicaciones || {}), [accesorioId]: ubicacionId },
-    }));
   };
 
   const cargarDiseno = (configuracion) => setSeleccion(configuracion || {});
 
-  return { seleccion, seleccionar, ubicar, cargarDiseno };
+  return { seleccion, seleccionar, cargarDiseno };
 };
 
 export default useConfigurador;

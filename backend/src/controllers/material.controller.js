@@ -1,11 +1,50 @@
-const { repo } = require('../lib/data-source');
 
-// Crear un material
+const { AppDataSource, repo } = require('../lib/data-source');
+
+// Crear un material y registrar su stock inicial
 async function crearMaterial(req, res) {
   try {
-    const material = await repo('material').save(repo('material').create(req.body));
+    const stockInicial = Number(req.body.stockActual ?? 0);
+
+    if (!Number.isInteger(stockInicial) || stockInicial < 0) {
+      return res.status(400).json({
+        error: 'El stock inicial debe ser un entero mayor o igual a 0.',
+      });
+    }
+
+    const material = await AppDataSource.transaction(async (manager) => {
+      const materialRepo = manager.getRepository('material');
+      const movimientoRepo = manager.getRepository('inventariomovimiento');
+
+      const nuevoMaterial = materialRepo.create({
+        ...req.body,
+        stockActual: 0,
+      });
+
+      nuevoMaterial.stockActual = stockInicial;
+      const guardado = await materialRepo.save(nuevoMaterial);
+
+      if (stockInicial > 0) {
+        const movimiento = movimientoRepo.create({
+          materialId: guardado.id,
+          tipo: 'ENTRADA',
+          cantidad: stockInicial,
+          motivo: 'Stock inicial',
+          referencia: 'Creación de material',
+          usuarioId: req.usuario?.id || null,
+        });
+
+        await movimientoRepo.save(movimiento);
+      }
+
+      // El stock final coincide con el movimiento inicial registrado.
+      
+      return guardado;
+    });
+
     res.status(201).json(material);
   } catch (error) {
+    console.error('Error al crear material:', error);
     res.status(400).json({ error: error.message });
   }
 }
@@ -23,22 +62,43 @@ async function listarMateriales(req, res) {
 // Ver un material por id
 async function obtenerMaterial(req, res) {
   try {
-    const material = await repo('material').findOneBy({ id: req.params.id });
-    if (!material) return res.status(404).json({ error: 'Material no encontrado' });
+    const material = await repo('material').findOneBy({
+      id: req.params.id,
+    });
+
+    if (!material) {
+      return res.status(404).json({ error: 'Material no encontrado' });
+    }
+
     res.json(material);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 }
 
-// Editar un material
+// Editar un material sin modificar directamente su stock
 async function editarMaterial(req, res) {
   try {
-    if (!(await repo('material').existsBy({ id: req.params.id }))) {
+    const materialRepo = repo('material');
+    const material = await materialRepo.findOneBy({
+      id: req.params.id,
+    });
+
+    if (!material) {
       return res.status(404).json({ error: 'Material no encontrado' });
     }
-    await repo('material').update({ id: req.params.id }, req.body);
-    res.json(await repo('material').findOneBy({ id: req.params.id }));
+
+    // Se ignora stockActual aunque venga incluido en la petición.
+    const { stockActual, ...datosEditables } = req.body;
+
+    await materialRepo.update(
+      { id: req.params.id },
+      datosEditables
+    );
+
+    res.json(
+      await materialRepo.findOneBy({ id: req.params.id })
+    );
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -47,8 +107,25 @@ async function editarMaterial(req, res) {
 // Eliminar un material
 async function eliminarMaterial(req, res) {
   try {
-    const { affected } = await repo('material').delete({ id: req.params.id });
-    if (!affected) return res.status(404).json({ error: 'Material no encontrado' });
+    const movimientos = await repo('inventariomovimiento').countBy({
+      materialId: req.params.id,
+    });
+
+    if (movimientos > 0) {
+      return res.status(409).json({
+        error:
+          'No se puede eliminar este artículo porque tiene movimientos de inventario asociados. Se conserva para no perder su historial.',
+      });
+    }
+
+    const { affected } = await repo('material').delete({
+      id: req.params.id,
+    });
+
+    if (!affected) {
+      return res.status(404).json({ error: 'Material no encontrado' });
+    }
+
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: error.message });

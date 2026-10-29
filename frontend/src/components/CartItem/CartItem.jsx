@@ -13,12 +13,26 @@ const QUANTITY_BUTTON_CLASS =
 //   onIncrement: qué hacer al sumar una unidad
 //   onDecrement: qué hacer al restar una unidad
 //   onRemove: qué hacer al eliminar el producto
-const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
+const CartItem = ({
+  item,
+  onIncrement,
+  onDecrement,
+  onRemove,
+  onNavigate,
+  disabled = false,
+}) => {
   const price = Number(item.costoUnitario ?? 0);
 
   return (
     <article className="flex flex-col justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
       <div className="space-y-1">
+        {item.configuracion?.imagen && (
+          <img
+            src={item.configuracion.imagen}
+            alt={item.nombre}
+            className="mb-3 h-24 w-24 rounded-lg border border-neutral-200 object-cover"
+          />
+        )}
         <h2 className="font-semibold text-neutral-900">{item.nombre}</h2>
         {item.marca && (
           <p className="text-sm text-neutral-500">
@@ -30,12 +44,19 @@ const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
             {item.formato} • {item.tamano} • {item.panel}
           </p>
         )}
-        <Link
-          to={ROUTES.productDetail(item.id)}
-          className="inline-block text-xs text-blue-600 hover:underline"
-        >
-          {MESSAGES.actions.viewDetails}
-        </Link>
+        {item.configuracion ? (
+          <p className="max-w-xl whitespace-pre-line text-xs text-neutral-500">
+            {item.configuracion.resumen}
+          </p>
+        ) : (
+          <Link
+            to={ROUTES.productDetail(item.id)}
+            onClick={onNavigate}
+            className="inline-block text-xs text-blue-600 hover:underline"
+          >
+            {MESSAGES.actions.viewDetails}
+          </Link>
+        )}
         <p className="pt-1 text-sm font-semibold text-neutral-900">
           {formatPrice(price)} {MESSAGES.labels.perUnit}
         </p>
@@ -43,13 +64,13 @@ const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
 
       <div className="flex items-center justify-between gap-4 sm:justify-end">
         <div className="flex items-center gap-2 rounded-lg border border-neutral-300 px-2 py-1">
-          <button type="button" onClick={onDecrement} className={QUANTITY_BUTTON_CLASS} aria-label={MESSAGES.actions.removeOne}>
+          <button type="button" onClick={onDecrement} disabled={disabled} className={QUANTITY_BUTTON_CLASS} aria-label={MESSAGES.actions.removeOne}>
             -
           </button>
           <span className="min-w-6 text-center font-semibold text-neutral-900">
             {item.cantidad}
           </span>
-          <button type="button" onClick={onIncrement} className={QUANTITY_BUTTON_CLASS} aria-label={MESSAGES.actions.addOne}>
+          <button type="button" onClick={onIncrement} disabled={disabled} className={QUANTITY_BUTTON_CLASS} aria-label={MESSAGES.actions.addOne}>
             +
           </button>
         </div>
@@ -62,6 +83,7 @@ const CartItem = ({ item, onIncrement, onDecrement, onRemove }) => {
         <button
           type="button"
           onClick={onRemove}
+          disabled={disabled}
           className="cursor-pointer text-red-500 hover:text-red-700"
           aria-label={MESSAGES.actions.remove(item.nombre)}
         >

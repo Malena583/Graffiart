@@ -4,12 +4,12 @@ import { MESSAGES } from "../constants/MESSAGES";
 import useFetch from "./useFetch";
 
 export const useGabinetes = () => {
-  const { data, loading, error } = useFetch(
+  const { data, loading, error, reload } = useFetch(
     "gabinetes",
     listarGabinetes,
     MESSAGES.catalog.loadError,
   );
-  return { gabinetes: data ?? [], loading, error };
+  return { gabinetes: data ?? [], loading, error, reload };
 };
 
 export const useGabinete = (id) => {

@@ -38,14 +38,18 @@ const EntityForm = ({
       {title && <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>}
 
       <div className={`grid gap-4 ${gridClass}`}>
-        {fields.map(({ half, ...field }) => (
+        {fields.map(({ half, render, ...field }) => (
           <div key={field.name} className={half || columns === 1 ? "" : "sm:col-span-2"}>
-            <TextField
-              id={field.name}
-              value={values[field.name] ?? ""}
-              onChange={onChange}
-              {...field}
-            />
+            {render ? (
+              render({ values, onChange })
+            ) : (
+              <TextField
+                id={field.name}
+                value={values[field.name] ?? ""}
+                onChange={onChange}
+                {...field}
+              />
+            )}
           </div>
         ))}
       </div>

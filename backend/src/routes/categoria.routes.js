@@ -11,11 +11,9 @@ const {
   verificarAdmin,
 } = require('../middleware/auth.middleware');
 
-router.use(verificarToken, verificarAdmin);
-
 router.get('/', listarCategorias);
-router.post('/', crearCategoria);
-router.put('/:id', editarCategoria);
-router.delete('/:id', eliminarCategoria);
+router.post('/', verificarToken, verificarAdmin, crearCategoria);
+router.put('/:id', verificarToken, verificarAdmin, editarCategoria);
+router.delete('/:id', verificarToken, verificarAdmin, eliminarCategoria);
 
 module.exports = router;

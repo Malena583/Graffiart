@@ -2,7 +2,6 @@ import Button from "../../components/Button/Button";
 import DataTable from "../../components/DataTable/DataTable";
 import EntityForm from "../../components/EntityForm/EntityForm";
 import Feedback from "../../components/Feedback/Feedback";
-import MainContainer from "../../components/MainContainer/MainContainer";
 import { MATERIAL_FORM } from "../../constants/FORMS";
 import { MESSAGES } from "../../constants/MESSAGES";
 import useCrudResource from "../../hooks/useCrudResource";
@@ -17,7 +16,6 @@ const mapError = (error, fallback) =>
     ? M.authError
     : getErrorMessage(error, fallback);
 
-// Página de administración del inventario de materiales: avisa si falta stock y permite crear, editar y eliminar.
 const Inventario = () => {
   const crud = useCrudResource({
     key: "materiales",
@@ -77,7 +75,11 @@ const Inventario = () => {
   ];
 
   return (
-    <MainContainer title={M.title} subtitle={M.subtitle}>
+    <div className="mx-auto max-w-5xl px-4 py-8 space-y-6">
+      <header>
+        <h1 className="text-xl font-semibold text-neutral-900">{M.title}</h1>
+        <p className="mt-1 text-sm text-neutral-500">{M.subtitle}</p>
+      </header>
       {crud.error && <Feedback type="error">{crud.error}</Feedback>}
       {crud.message && <Feedback type="success">{crud.message}</Feedback>}
 
@@ -97,7 +99,9 @@ const Inventario = () => {
       )}
 
       <EntityForm
-        fields={MATERIAL_FORM.fields}
+          fields={MATERIAL_FORM.fields.filter(
+            (field) => field.name !== "stockActual" || !crud.editingId
+          )}
         values={crud.values}
         onChange={crud.onChange}
         onSubmit={crud.onSubmit}
@@ -108,7 +112,7 @@ const Inventario = () => {
       />
 
       <DataTable columns={columns} rows={crud.items} empty={M.empty} />
-    </MainContainer>
+    </div>
   );
 };
 

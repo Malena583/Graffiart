@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   listarProductos,
   obtenerProducto,
+  obtenerImagenProducto,
   crearProducto,
   editarProducto,
   eliminarProducto,
@@ -11,6 +12,8 @@ const {
   verificarToken,
   verificarAdmin,
 } = require('../middleware/auth.middleware');
+
+router.get('/:id/imagen', obtenerImagenProducto);
 
 router.use(verificarToken, verificarAdmin);
 

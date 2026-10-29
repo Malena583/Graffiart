@@ -12,7 +12,7 @@ import { LOGIN } from "../../../constants/LOGIN";
 //   isLoading: true mientras se espera la respuesta del servidor
 //   hasResetToken: true si el código de recuperación ya vino en el link
 //   onForgotPassword: qué hacer al tocar "¿Olvidaste tu contraseña?"
-const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken, onForgotPassword,
+const AuthForm = ({idPrefix = "auth", mode, form, onFieldChange, onSubmit, isLoading, hasResetToken, onForgotPassword,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -34,7 +34,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
         <div className="grid grid-cols-2 gap-3">
           <TextField
             label={LOGIN.form.name}
-            id="auth-nombre"
+            id={`${idPrefix}-nombre`}
             type="text"
             name="nombre"
             value={form.nombre}
@@ -45,7 +45,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
           />
           <TextField
             label={LOGIN.form.surname}
-            id="auth-apellido"
+            id={`${idPrefix}-apellido`}
             type="text"
             name="apellido"
             value={form.apellido}
@@ -67,7 +67,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
               </span>
             </>
           }
-          id="auth-telefono"
+          id={`${idPrefix}-telefono`}
           type="tel"
           name="telefono"
           value={form.telefono}
@@ -80,7 +80,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
       {mode !== "reset" && (
         <TextField
           label={LOGIN.form.email}
-          id="auth-email"
+          id={`${idPrefix}-email`}
           type="email"
           name="email"
           value={form.email}
@@ -94,7 +94,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
       {mode === "reset" && !hasResetToken && (
         <TextField
           label={LOGIN.reset.codeLabel}
-          id="auth-reset-code"
+          id={`${idPrefix}-reset-code`}
           type="text"
           name="resetCode"
           value={form.resetCode}
@@ -107,7 +107,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
       {showPasswordField && (
         <TextField
           label={mode === "reset" ? LOGIN.reset.newPassword : LOGIN.form.password}
-          id="auth-password"
+          id={`${idPrefix}-password`}
           labelAction={
             mode === "login" && (
               <Button
@@ -154,7 +154,7 @@ const AuthForm = ({mode, form, onFieldChange, onSubmit, isLoading, hasResetToken
       {showConfirmPasswordField && (
         <TextField
           label={LOGIN.form.confirmPassword}
-          id="auth-confirm-password"
+          id={`${idPrefix}-confirm-password`}
           inputAction={
             <Button
               variant="passwordToggle"

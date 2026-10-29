@@ -1,16 +1,15 @@
-import {
-  CATEGORIA_MATERIAL_OPTIONS,
-  FORMATO_OPTIONS,
-  MATERIAL_CHASIS_OPTIONS,
-  PANEL_OPTIONS,
-  TAMANO_OPTIONS,
-  UNIDAD_MEDIDA_OPTIONS,
+import {CATEGORIA_MATERIAL_OPTIONS, FORMATO_OPTIONS, MATERIAL_CHASIS_OPTIONS, PANEL_OPTIONS, TAMANO_OPTIONS, UNIDAD_MEDIDA_OPTIONS,
 } from "./CATALOGO";
 
 export const CATEGORIA_FORM = {
   initialValues: { nombre: "", descripcion: "" },
   fields: [
-    { name: "nombre", label: "Nombre", placeholder: "Nombre de la categoría" },
+    {
+      name: "nombre",
+      label: "Nombre",
+      placeholder: "Nombre de la categoría",
+      maxLength: 100,
+    },
     { name: "descripcion", label: "Descripción", type: "textarea" },
   ],
   columns: {
@@ -19,9 +18,12 @@ export const CATEGORIA_FORM = {
     products: "Productos",
     actions: "Acciones",
   },
+  pageTitle: "Categorías",
+  createButton: "Crear",
+  emptyText: "Todavía no hay categorías registradas.",
   createTitle: "Crear categoría",
   editTitle: "Editar categoría",
-  createLabel: "Crear categoría",
+  createLabel: "Crear",
 };
 
 export const PRODUCTO_FORM = {
@@ -36,12 +38,13 @@ export const PRODUCTO_FORM = {
     materialChasis: "ACERO",
     panel: "VIDRIO_TEMPLADO",
     categoriaId: "",
+    imagen: "",
   },
   fields: [
     { name: "nombre", label: "Nombre", placeholder: "Ej: GraffiArt Gamer X", half: true },
     { name: "marca", label: "Marca", placeholder: "Ej: GraffiArt", half: true },
     { name: "costoUnitario", label: "Costo unitario", type: "number", min: "0", step: "0.01", half: true },
-    { name: "stockActual", label: "Stock actual", type: "number", min: "0", half: true },
+    
     { name: "stockMinimo", label: "Stock mínimo", type: "number", min: "0", half: true },
     { name: "tamano", label: "Tamaño", type: "select", options: TAMANO_OPTIONS, half: true },
     { name: "formato", label: "Formato", type: "select", options: FORMATO_OPTIONS, half: true },
@@ -56,18 +59,26 @@ export const PRODUCTO_FORM = {
     half: true,
   },
   columns: {
+    image: "Imagen",
     product: "Producto",
-    brand: "Marca",
     category: "Categoría",
-    cost: "Costo",
+    price: "Precio",
     stock: "Stock",
+    status: "Estado",
     features: "Características",
     actions: "Acciones",
   },
   noCategory: "Sin categoría",
+  noImage: "Sin imagen",
+  statusActive: "Activo",
+  statusInactive: "Inactivo",
+  pageTitle: "Productos",
+  createButton: "Crear",
+  emptyText: "Todavía no hay productos registrados.",
   createTitle: "Crear producto",
   editTitle: "Editar producto",
-  createLabel: "Crear producto",
+  createLabel: "Crear",
+  imageRequired: "La imagen del producto es obligatoria.",
 };
 
 export const MATERIAL_FORM = {

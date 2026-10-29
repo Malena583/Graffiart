@@ -12,17 +12,20 @@ async function conConteo(id) {
 async function listarCategorias(req, res) {
   try {
     const categorias = await repo('CategoriaProducto')
-      .createQueryBuilder('c')
-      .loadRelationCountAndMap('c.totalProductos', 'c.productos')
-      .orderBy('c.nombre', 'ASC')
-      .getMany();
-
-    res.json(
-      categorias.map(({ totalProductos, ...categoria }) => ({
+      .find({
+        where: { activo: true },
+        order: { nombre: 'ASC' },
+      });
+    const categoriasConConteo = await Promise.all(
+      categorias.map(async (categoria) => ({
         ...categoria,
-        _count: { productos: totalProductos },
+        _count: {
+          productos: await repo('gabinete').countBy({ categoriaId: categoria.id }),
+        },
       }))
     );
+
+    res.json(categoriasConConteo);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

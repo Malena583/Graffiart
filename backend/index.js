@@ -10,11 +10,12 @@ const gabineteRoutes = require('./src/routes/gabinete.routes');
 const categoriaRoutes = require('./src/routes/categoria.routes');
 const productoRoutes = require('./src/routes/producto.routes');
 const { initDataSource } = require('./src/lib/data-source');
-
+const inventarioRoutes = require('./src/routes/inventario.routes');
+const pedidoRoutes = require('./src/routes/pedido.routes');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '7mb' }));
 app.use('/api/categorias', categoriaRoutes);
 app.use('/api/productos', productoRoutes);
 
@@ -23,11 +24,13 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/materiales', materialRoutes);
+app.use('/api/inventario', inventarioRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/disenos', disenoRoutes);
 app.use('/api/carrito', carritoRoutes);
 app.use('/api/gabinetes', gabineteRoutes);
+app.use('/api/pedidos', pedidoRoutes);
 
 const PORT = process.env.PORT || 3000;
 initDataSource()
@@ -40,4 +43,3 @@ initDataSource()
     console.error('No se pudo conectar a la base de datos:', error.message);
     process.exit(1);
   });
-

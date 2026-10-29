@@ -28,6 +28,31 @@ export const MESSAGES = {
     loading: "Cargando catálogo...",
     empty: "No hay productos disponibles por el momento.",
     loadError: "No se pudo cargar el catálogo.",
+    categoryLoading: "Cargando categoría...",
+    categoryLoadError: "No se pudo cargar la categoría seleccionada.",
+    categoryNotFound: "La categoría seleccionada no está disponible.",
+    categoryEmpty: "Todavía no hay productos disponibles en esta categoría.",
+    backHome: "Volver al inicio",
+  },
+  navbarPanels: {
+    search: "Buscar",
+    profile: "Perfil",
+    cart: "Carrito",
+    searchPlaceholder: "Buscar productos...",
+    searchEmpty: "No se encontraron productos.",
+    searchStart: "Escribí el nombre de un producto o marca para buscar.",
+    accountWelcome: (name) => `Hola, ${name}.`,
+    accountProfile: "Ver mi perfil",
+    logout: "Cerrar sesión",
+    continuePurchase: "Continuar compra",
+  },
+  homeCategories: {
+    title: "Categorías",
+    loading: "Cargando categorías...",
+    emptyCategories: "No hay categorías disponibles por el momento.",
+    emptyProducts: "No hay productos disponibles en esta categoría.",
+    loadCategoriesError: "No se pudieron cargar las categorías.",
+    explore: "Explorar esta categoría",
   },
   detail: {
     notFound: "Producto no encontrado",
@@ -51,12 +76,18 @@ export const MESSAGES = {
     free: "Gratis",
     total: "Total",
     checkout: "Finalizar compra",
+    validatingAvailability: "Validando disponibilidad...",
+    availabilityError: "No se pudo confirmar la disponibilidad de los productos del carrito.",
+    changedCart: "El carrito cambió durante la validación. Volvé a intentar.",
     checkoutSuccess: "¡Compra realizada con éxito! (Simulación)",
   },
   profile: {
     title: "Mi perfil",
     loading: "Cargando perfil...",
     loadError: "No se pudo cargar tu perfil",
+    email: "Correo electrónico",
+    phone: "Teléfono",
+    role: "Tipo de cuenta",
     saveError: "No se pudo actualizar el perfil",
     saved: "Perfil actualizado correctamente",
     logout: "Cerrar sesión",
@@ -96,6 +127,15 @@ export const MESSAGES = {
       created: "Categoría creada correctamente.",
       updated: "Categoría actualizada correctamente.",
       deleted: "Categoría eliminada correctamente.",
+      confirmDeleteTitle: "Eliminar categoría",
+      confirmDeleteText: (nombre) =>
+        `¿Seguro que querés eliminar la categoría «${nombre}»?`,
+      withProducts: (cantidad) =>
+        cantidad === 1
+          ? "Atención: esta categoría tiene 1 producto asociado."
+          : `Atención: esta categoría tiene ${cantidad} productos asociados.`,
+      inUseError:
+        "No se puede eliminar la categoría porque tiene productos asociados. Reasigná o eliminá esos productos primero.",
     },
     productos: {
       title: "Gestión de productos",
@@ -111,6 +151,13 @@ export const MESSAGES = {
       registered: "Productos registrados",
       loading: "Cargando productos...",
       empty: "Todavía no hay productos registrados.",
+      categoriesLoadError:
+        "No se pudieron cargar las categorías. Cerrá esta ventana y volvé a intentarlo.",
+      confirmDeleteTitle: "Eliminar producto",
+      confirmDeleteText: (nombre) =>
+        `¿Seguro que querés eliminar el producto «${nombre}»? Esta acción no se puede deshacer.`,
+      inUseError:
+        "No se puede eliminar el producto porque está asociado a otros registros (por ejemplo, carritos de clientes).",
     },
     materiales: {
       title: "Gestión de inventario",

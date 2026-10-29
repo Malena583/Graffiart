@@ -1,4 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router";
+import { useState } from "react";
 import Button from "../../components/Button/Button";
 import MainContainer from "../../components/MainContainer/MainContainer";
 import StateMessage from "../../components/StateMessage/StateMessage";
@@ -9,6 +10,7 @@ import { useGabinete } from "../../hooks/useGabinetes";
 import { useCartStore } from "../../store/cartStore";
 import { formatPrice } from "../../utils/format";
 import { ROUTES } from "../../constants/ROUTES";
+import { productoImageUrl } from "../../utils/gabinete";
 
 const M = MESSAGES.detail;
 
@@ -17,6 +19,11 @@ const ProductoDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { gabinete, loading, error } = useGabinete(id);
+  const [failedImage, setFailedImage] = useState("");
+  const imageUrl = gabinete?.imagenUrl
+    ? productoImageUrl(gabinete.imagenUrl)
+    : "";
+  const imageFailed = failedImage === imageUrl;
   const agregarAlCarrito = useCartStore((state) => state.agregarAlCarrito);
   const [added, markAdded] = useTemporaryFlag();
 
@@ -78,6 +85,14 @@ const ProductoDetalle = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {gabinete.imagenUrl && !imageFailed && (
+            <img
+              src={imageUrl}
+              alt={gabinete.nombre}
+              className="h-72 w-full rounded-lg bg-neutral-100 object-cover"
+              onError={() => setFailedImage(imageUrl)}
+            />
+          )}
           <div className="space-y-3">
             <h2 className="text-lg font-semibold text-neutral-900">{M.specs}</h2>
             <ul className="space-y-2 text-sm text-neutral-600">

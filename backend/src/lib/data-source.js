@@ -11,7 +11,8 @@ const AppDataSource = new DataSource({
   type: 'mysql',
   url: databaseUrl,
   entities,
-  synchronize: process.env.DB_SYNCHRONIZE === 'true',
+  migrations: [__dirname + '/../migrations/*.js'],
+  synchronize: false,
   timezone: 'Z',
 });
 

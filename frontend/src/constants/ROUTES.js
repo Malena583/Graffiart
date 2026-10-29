@@ -14,4 +14,10 @@ export const ROUTES = {
   adminCategories: "/admin/categorias",
   adminProducts: "/admin/productos",
   inventory: "/inventario",
+  adminDesigns: "/admin/disenos",
+  adminSizes: "/admin/tamanos",
+  adminColors: "/admin/colores",
+  adminMaterials: "/admin/materiales",
+  adminAccessories: "/admin/accesorios",
+  adminOrders: "/admin/pedidos",
 };

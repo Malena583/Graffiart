@@ -19,6 +19,22 @@ export const useCartStore = create((set) => ({
       };
     }),
 
+  agregarConfiguracion: (gabinete, configuracion, precio) =>
+    set(({ carrito }) => ({
+      carrito: [
+        ...carrito,
+        {
+          ...gabinete,
+          nombre: gabinete.nombre,
+          id: `config-${crypto.randomUUID()}`,
+          gabineteId: configuracion.gabineteId ?? null,
+          costoUnitario: precio,
+          configuracion,
+          cantidad: 1,
+        },
+      ],
+    })),
+
   incrementarCantidad: (id) =>
     set(({ carrito }) => ({
       carrito: mapItem(carrito, id, (item) => ({

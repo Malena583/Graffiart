@@ -6,7 +6,9 @@
     "test": "node --test",
     "dev": "nodemon index.js",
     "crear-admin": "node scripts/crear-admin.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "migration:run": "typeorm migration:run -d src/lib/data-source.js",
+    "migration:revert": "typeorm migration:revert -d src/lib/data-source.js"
   },
   "keywords": [],
   "author": "",

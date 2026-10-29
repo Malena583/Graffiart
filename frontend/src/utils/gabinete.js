@@ -1,8 +1,15 @@
 import { FORMATOS, PANELES, SPEC_LABELS, TAMANOS } from "../constants/CATALOGO";
 import { MESSAGES } from "../constants/MESSAGES";
+import { API_URL } from "../constants/APP";
+
+export const productoImageUrl = (imagenUrl) =>
+  imagenUrl
+    ? new URL(imagenUrl, `${API_URL.replace(/\/$/, "")}/`).toString()
+    : "";
 
 export const gabineteToProduct = (gabinete) => ({
   ...gabinete,
+  image: productoImageUrl(gabinete.imagenUrl),
   name: gabinete.nombre,
   price: gabinete.costoUnitario,
   subtitle: `${MESSAGES.labels.brand}: ${gabinete.marca}`,

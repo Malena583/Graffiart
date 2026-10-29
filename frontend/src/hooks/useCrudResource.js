@@ -1,3 +1,4 @@
+//frontend/src/hooks/useCrudResource.js
 import { useState } from "react";
 import { getErrorMessage } from "../utils/errors";
 import useFetch from "./useFetch";
@@ -56,7 +57,7 @@ const useCrudResource = ({
       payload = await schema.validate(values, { abortEarly: true });
     } catch (validationError) {
       setActionError(validationError.message);
-      return;
+      return false;
     }
 
     try {
@@ -69,8 +70,10 @@ const useCrudResource = ({
       }
       resetForm();
       reload();
+      return true;
     } catch (error) {
       setActionError(mapError(error, messages.saveError));
+      return false;
     }
   };
 
@@ -81,8 +84,10 @@ const useCrudResource = ({
       if (editingId === id) resetForm();
       setMessage(messages.deleted);
       reload();
+      return true;
     } catch (error) {
       setActionError(mapError(error, messages.deleteError));
+      return false;
     }
   };
 
@@ -102,3 +107,4 @@ const useCrudResource = ({
 };
 
 export default useCrudResource;
+

@@ -15,6 +15,32 @@ function verificarToken(req, res, next) {
   }
 }
 
+function verificarTokenOpcional(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    req.usuario = null;
+    return next();
+  }
+
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token inválido' });
+  }
+
+  try {
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'graffiart-dev-secret'
+    );
+
+    req.usuario = decoded;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+}
+
 function verificarAdmin(req, res, next) {
   if (req.usuario?.rol !== 'ADMIN') {
     return res.status(403).json({
@@ -25,4 +51,4 @@ function verificarAdmin(req, res, next) {
   next();
 }
 
-module.exports = { verificarToken, verificarAdmin };
+module.exports = { verificarToken, verificarTokenOpcional, verificarAdmin };

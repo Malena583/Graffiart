@@ -1,4 +1,5 @@
 import Admin from "./Admin/Admin";
+import AdminAccesorios from "./AdminAccesorios/AdminAccesorios";
 import AdminCategorias from "./AdminCategorias/AdminCategorias";
 import AdminProductos from "./AdminProductos/AdminProductos";
 import Carrito from "./Carrito/Carrito";
@@ -10,9 +11,10 @@ import Perfil from "./Perfil/Perfil";
 import ProductoDetalle from "./ProductoDetalle/ProductoDetalle";
 import Productos from "./Productos/Productos";
 import Register from "./Register/Register";
-
+import AdminPedidos from "./AdminPedidos/AdminPedidos";
 export {
   Admin,
+  AdminAccesorios,
   AdminCategorias,
   AdminProductos,
   Carrito,
@@ -24,4 +26,5 @@ export {
   ProductoDetalle,
   Productos,
   Register,
+  AdminPedidos,
 };

@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import heroImage from "../../assets/hero.png";
+import heroImage from "../../assets/hero.avif";
 import { HERO } from "../../constants/HERO";
 import { ROUTES } from "../../constants/ROUTES";
 

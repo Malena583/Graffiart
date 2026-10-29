@@ -35,6 +35,7 @@ export const productoSchema = yup.object({
   materialChasis: text(L.chassisMaterial),
   panel: text(L.panel),
   categoriaId: yup.string().nullable().transform((v) => v || null),
+  imagen: yup.string().default(""),
 });
 
 export const materialSchema = yup.object({

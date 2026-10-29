@@ -37,12 +37,12 @@ const useDisenos = (seleccion) => {
     }
   };
 
-  const guardar = async () => {
-    if (!nombre.trim()) return;
+  const guardar = async (nombreDiseño = nombre) => {
+    if (!nombreDiseño.trim()) return;
     setSaving(true);
     const ok = await run(
       async () => {
-        const validName = await disenoNombreSchema.validate(nombre);
+        const validName = await disenoNombreSchema.validate(nombreDiseño);
         await crearDiseno({
           nombre: validName,
           descripcion: M.defaultDescription,

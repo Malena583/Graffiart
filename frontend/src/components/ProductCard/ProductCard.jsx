@@ -16,8 +16,11 @@ const ProductCard = ({
   onAddToCart,
 }) => {
   const [isImageExpanded, setIsImageExpanded] = useState(false);
+  const [failedImage, setFailedImage] = useState("");
   const [added, markAdded] = useTemporaryFlag();
   const { name, image, price, subtitle, specs = [] } = product;
+
+  const imageFailed = failedImage === image;
 
   const handleAddToCart = () => {
     onAddToCart(product);
@@ -26,14 +29,19 @@ const ProductCard = ({
 
   return (
     <article className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-      {image ? (
+      {image && !imageFailed ? (
         <button
           type="button"
           className="block w-full cursor-zoom-in bg-neutral-100"
           onClick={() => setIsImageExpanded(true)}
           aria-label={PRODUCTCARD.expandImage(name)}
         >
-          <img src={image} alt={name} className="h-48 w-full object-cover" />
+          <img
+            src={image}
+            alt={name}
+            className="h-48 w-full object-cover"
+            onError={() => setFailedImage(image)}
+          />
         </button>
       ) : (
         <div className="flex h-48 w-full items-center justify-center bg-neutral-100 text-sm text-neutral-400">

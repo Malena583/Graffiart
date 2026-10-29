@@ -11,6 +11,7 @@ async function getPerfil(req, res) {
         email: true,
         telefono: true,
         rol: true,
+        
         fechaRegistro: true,
         emailVerificado: true,
       },

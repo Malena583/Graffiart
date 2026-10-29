@@ -10,11 +10,25 @@ const formatConfigSummary = (configuracion) => {
   if (!configuracion) return M.noConfig;
 
   const items = [];
-  if (configuracion.tamano) items.push(`Tamaño: ${configuracion.tamano}`);
-  if (configuracion.material) items.push(`Material: ${configuracion.material}`);
+  if (configuracion.tamanoNombre || configuracion.tamano) {
+    items.push(
+      `Tamaño: ${configuracion.tamanoNombre || configuracion.tamano}`,
+    );
+  }
+  const materiales =
+    configuracion.materialesNombres || configuracion.materiales;
+  if (materiales) {
+    items.push(
+      `Material: ${Array.isArray(materiales) ? materiales.join(", ") : materiales}`,
+    );
+  }
   if (configuracion.color) items.push(`Color: ${configuracion.color}`);
-  if (configuracion.accesorios?.length) {
-    items.push(`Accesorios: ${configuracion.accesorios.length}`);
+  const accesorios =
+    configuracion.accesoriosNombres || configuracion.accesorios;
+  if (accesorios?.length) {
+    items.push(
+      `Accesorios: ${Array.isArray(accesorios) ? accesorios.join(", ") : accesorios}`,
+    );
   }
 
   return items.length ? items.join(" • ") : M.availableConfig;
@@ -64,6 +78,7 @@ const SavedDesigns = ({
   onLoadDesign,
   compact = false,
   title = M.title,
+  nombreExterno,
 }) => {
   const {
     disenos,
@@ -85,7 +100,7 @@ const SavedDesigns = ({
       {error && <Feedback type="error">{error}</Feedback>}
       {success && <Feedback type="success">{success}</Feedback>}
 
-      {!compact && (
+      {!compact && nombreExterno === undefined && (
         <div className="mb-4 flex items-end gap-2">
           <div className="flex-1">
             <TextField
@@ -105,6 +120,17 @@ const SavedDesigns = ({
               {saving ? MESSAGES.actions.saving : MESSAGES.actions.save}
             </Button>
           </div>
+        </div>
+      )}
+      {!compact && nombreExterno !== undefined && (
+        <div className="mb-4">
+          <Button
+            variant="compact"
+            onClick={() => guardar(nombreExterno)}
+            disabled={saving || !nombreExterno.trim()}
+          >
+            {saving ? MESSAGES.actions.saving : MESSAGES.actions.save}
+          </Button>
         </div>
       )}
 

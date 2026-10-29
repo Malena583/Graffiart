@@ -8,7 +8,7 @@ const M = MESSAGES.cart;
 // Props:
 //   total: monto total a pagar
 //   onCheckout: qué hacer al tocar "Finalizar compra"
-const OrderSummary = ({ total, onCheckout }) => {
+const OrderSummary = ({ total, onCheckout, loading = false }) => {
   return (
     <aside className="h-fit space-y-3 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
       <h2 className="border-b border-neutral-200 pb-3 text-lg font-semibold text-neutral-900">
@@ -26,7 +26,9 @@ const OrderSummary = ({ total, onCheckout }) => {
         <span>{M.total}</span>
         <span>{formatPrice(total)}</span>
       </div>
-      <Button onClick={onCheckout}>{M.checkout}</Button>
+      <Button onClick={onCheckout} disabled={loading}>
+        {loading ? M.validatingAvailability : M.checkout}
+      </Button>
     </aside>
   );
 };
