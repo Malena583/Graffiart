@@ -13,6 +13,7 @@ import { useCartStore } from "../../store/cartStore";
 import { formatPrice } from "../../utils/format";
 import { listarMateriales } from "../../services/materialService";
 import {
+  listarColoresConfigurador,
   listarTamanosConfigurador,
   validarConfiguracion,
 } from "../../services/gabineteService";
@@ -60,7 +61,17 @@ const Configurator = () => {
     listarMateriales,
     CONFIGURATOR_TEXTS.loadError,
   );
-  const loading = tamanosLoading || materialesLoading;
+  // Los colores son opcionales: si no cargan, solo se avisa en la categoría Color.
+  const {
+    data: colores,
+    loading: coloresLoading,
+    error: coloresError,
+  } = useFetch(
+    "configurator-colors",
+    listarColoresConfigurador,
+    CONFIGURATOR_TEXTS.colorLoadError,
+  );
+  const loading = tamanosLoading || materialesLoading || coloresLoading;
   const loadError = tamanosError || materialesError;
   
 
@@ -134,8 +145,16 @@ const Configurator = () => {
         id: "color",
         titulo: "Color",
         tipo: "simple",
-        opciones: [],
-        mensajeVacio: CONFIGURATOR_TEXTS.noColorOptions,
+        // Solo llegan los colores activos; el hex se usa para pintar el gabinete
+        opciones: (colores ?? []).map((color) => ({
+          id: color.id,
+          label: color.nombre,
+          hex: color.codigoHex,
+          precio: 0,
+          disponible: true,
+          estado: color.codigoHex,
+        })),
+        mensajeVacio: coloresError || CONFIGURATOR_TEXTS.noColorOptions,
       },
       {
         id: "accesorios",
@@ -145,7 +164,7 @@ const Configurator = () => {
         mensajeVacio: CONFIGURATOR_TEXTS.noAccessoryOptions,
       },
     ];
-  }, [tamanos, materiales]);
+  }, [tamanos, materiales, colores, coloresError]);
 
   const sizeOptions =
     categories.find((category) => category.id === "tamano")?.opciones ?? [];
@@ -153,6 +172,19 @@ const Configurator = () => {
     categories.find((category) => category.id === "materiales")?.opciones ?? [];
   const accessoryOptions =
     categories.find((category) => category.id === "accesorios")?.opciones ?? [];
+  const colorOptions =
+    categories.find((category) => category.id === "color")?.opciones ?? [];
+  const selectedColor = colorOptions.find(
+    (option) => option.id === seleccion.color,
+  );
+  // Un color que ya no está activo se conserva en el diseño guardado (se sigue
+  // viendo en el preview), pero no se puede comprar hasta elegir otro.
+  const colorUnavailable = Boolean(seleccion.color) && !selectedColor;
+  const colorInfo = selectedColor
+    ? { colorNombre: selectedColor.label, colorHex: selectedColor.hex }
+    : seleccion.color
+      ? { colorNombre: seleccion.colorNombre, colorHex: seleccion.colorHex }
+      : {};
   const selectedSize = tamanos?.find(
     (tamano) => tamano.codigo === seleccion.tamano,
   );
@@ -166,6 +198,7 @@ const Configurator = () => {
     .filter(Boolean);
   const savedConfiguration = {
     ...seleccion,
+    ...colorInfo,
     tamano: seleccion.tamano,
     tamanoNombre: selectedSize?.nombre ?? "",
     materialesNombres: selectedMaterials.map((option) => option.label),
@@ -179,6 +212,7 @@ const Configurator = () => {
   const canAdd = Boolean(
     !loading &&
       !loadError &&
+      !colorUnavailable &&
       sizeOptions.find((option) => option.id === seleccion.tamano)?.disponible &&
       selectedMaterials.length === selectedMaterialIds.length &&
       selectedMaterials.length > 0 &&
@@ -186,6 +220,10 @@ const Configurator = () => {
       selectedAccessories.length === selectedAccessoryIds.length &&
       selectedAccessories.every((option) => option.disponible),
   );
+
+  const blockedMessage = colorUnavailable
+    ? CONFIGURATOR_TEXTS.colorUnavailable
+    : CONFIGURATOR_TEXTS.configurationRequired;
 
   const handleImageChange = (event) => {
     const file = event.target.files?.[0];
@@ -250,13 +288,20 @@ const Configurator = () => {
         tamanoNombre: selectedSize.nombre,
         materiales: selectedMaterials.map((option) => option.label),
         accesorios: selectedAccessories.map((option) => option.label),
-        
+        ...(selectedColor && {
+          colorId: selectedColor.id,
+          colorNombre: selectedColor.label,
+          colorHex: selectedColor.hex,
+        }),
         imagen,
       };
 
       const resumen = [
         `${CONFIGURATOR_TEXTS.sizeLabel}: ${selectedSize.nombre}`,
         ...selectedMaterials.map((option) => `${CONFIGURATOR_TEXTS.materialLabel}: ${option.label}`),
+        ...(selectedColor
+          ? [`${CONFIGURATOR_TEXTS.colorLabel}: ${selectedColor.label}`]
+          : []),
         ...selectedAccessories.map((option) => `${CONFIGURATOR_TEXTS.accessoriesLabel}: ${option.label}`),
       ].join("\n");
       agregarConfiguracion(
@@ -495,7 +540,18 @@ const Configurator = () => {
                   {CONFIGURATOR_TEXTS.colorLabel}
                 </dt>
                 <dd className="mt-1 text-neutral-900">
-                  {CONFIGURATOR_TEXTS.noColorOptions}
+                  {colorInfo.colorNombre || colorInfo.colorHex ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-4 w-4 rounded-full border border-neutral-400"
+                        style={{ backgroundColor: colorInfo.colorHex }}
+                      />
+                      {colorInfo.colorNombre || colorInfo.colorHex}
+                    </span>
+                  ) : (
+                    CONFIGURATOR_TEXTS.noColorSelected
+                  )}
                 </dd>
               </div>
               <div>
@@ -546,7 +602,7 @@ const Configurator = () => {
           error={
             actionError ||
             (!loading && !loadError && !canAdd
-              ? CONFIGURATOR_TEXTS.configurationRequired
+              ? blockedMessage
               : "")
           }
           success={success}
@@ -568,7 +624,7 @@ const Configurator = () => {
           error={
             actionError ||
             (!loading && !loadError && !canAdd
-              ? CONFIGURATOR_TEXTS.configurationRequired
+              ? blockedMessage
               : "")
           }
           success={success}

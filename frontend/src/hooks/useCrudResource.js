@@ -103,6 +103,7 @@ const useCrudResource = ({
     startEdit,
     cancelEdit,
     remove,
+    reload,
   };
 };
 

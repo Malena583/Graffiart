@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Search, ShoppingBag, UserRound } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ROLES } from "../../constants/APP";
 import { MESSAGES } from "../../constants/MESSAGES";
 import { NAVBAR } from "../../constants/NAVBAR";
@@ -9,6 +9,7 @@ import useFetch from "../../hooks/useFetch";
 import { listarCategorias } from "../../services/categoriaService";
 import { selectCantidadTotal, useCartStore } from "../../store/cartStore";
 import { useAuthStore } from "../../store/authStore";
+import { getPostLoginRoute } from "../../utils/authRedirect";
 import GraffiartLink from "../GraffiartLink/GraffiartLink";
 import NavItem from "../NavItem/NavItem";
 import AuthPanel from "./AuthPanel";
@@ -19,6 +20,7 @@ import SidePanel from "./SidePanel";
 
 // Barra de navegación superior: links del sitio, perfil o login, cerrar sesión y carrito con la cantidad de productos.
 const Navbar = () => {
+  const navigate = useNavigate();
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [activePanel, setActivePanel] = useState(null);
   const hoverTimeout = useRef(null);
@@ -76,6 +78,15 @@ const Navbar = () => {
   const handleCategoriesMouseLeave = () => {
     clearTimeout(hoverTimeout.current);
     setCategoriesOpen(false);
+  };
+
+  // Login desde el panel lateral: el cliente se queda donde está y el admin va al panel.
+  const handlePanelLoginSuccess = ({ usuario: authenticatedUser, token }) => {
+    login(authenticatedUser, token);
+    setActivePanel(null);
+    if (authenticatedUser?.rol === ROLES.admin) {
+      navigate(getPostLoginRoute(authenticatedUser));
+    }
   };
 
   useEffect(
@@ -190,11 +201,7 @@ const Navbar = () => {
             (usuario ? (
               <ProfilePanel onLogout={logout} />
             ) : (
-              <AuthPanel
-                onLoginSuccess={({ usuario: authenticatedUser, token }) => {
-                  login(authenticatedUser, token);
-                }}
-              />
+              <AuthPanel onLoginSuccess={handlePanelLoginSuccess} />
             ))}
           {activePanel === "cart" && <CartPanel onClose={closePanel} />}
         </SidePanel>

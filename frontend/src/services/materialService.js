@@ -24,9 +24,16 @@ export const eliminarMaterial = async (id) => {
   await apiClient.delete(`/materiales/${id}`);
 };
 
+// Activa o desactiva un material sin eliminarlo (conserva su historial).
+export const cambiarEstadoMaterial = async (id, activo) => {
+  const { data } = await apiClient.patch(`/materiales/${id}/estado`, { activo });
+  return data;
+};
+
 export default {
   listar: listarMateriales,
   crear: crearMaterial,
   editar: editarMaterial,
   eliminar: eliminarMaterial,
+  cambiarEstado: cambiarEstadoMaterial,
 };

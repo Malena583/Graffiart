@@ -1,10 +1,28 @@
-import { createBrowserRouter, Navigate, Outlet } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { ROLES } from "./constants/APP";
 import { ROUTES } from "./constants/ROUTES";
 import Layout from "./components/Layout/Layout";
 import AdminLayout from "./components/AdminLayout/AdminLayout";
+import AdminPlaceholder from "./components/AdminPlaceholder/AdminPlaceholder";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
-import {Admin, AdminAccesorios, AdminCategorias, AdminProductos, Carrito, Configurator, Home, Inventario, Login, Perfil, ProductoDetalle, Productos, Register, AdminPedidos
+import {
+  Admin,
+  AdminAccesorios,
+  AdminCategorias,
+  AdminColores,
+  AdminMateriales,
+  AdminPedidos,
+  AdminProductos,
+  AdminTamanos,
+  Carrito,
+  Configurator,
+  Home,
+  Inventario,
+  Login,
+  Perfil,
+  ProductoDetalle,
+  Productos,
+  Register,
 } from "./pages";
 
 export const router = createBrowserRouter([
@@ -19,10 +37,10 @@ export const router = createBrowserRouter([
           { path: ROUTES.adminCategories, element: <AdminCategorias /> },
           { path: ROUTES.adminProducts, element: <AdminProductos /> },
           { path: ROUTES.inventory, element: <Inventario /> },
-          { path: ROUTES.adminDesigns, element: <Outlet /> },
-          { path: ROUTES.adminSizes, element: <Outlet /> },
-          { path: ROUTES.adminColors, element: <Outlet /> },
-          { path: ROUTES.adminMaterials, element: <Outlet /> },
+          { path: ROUTES.adminDesigns, element: <AdminPlaceholder title="Diseños" /> },
+          { path: ROUTES.adminSizes, element: <AdminTamanos /> },
+          { path: ROUTES.adminColors, element: <AdminColores /> },
+          { path: ROUTES.adminMaterials, element: <AdminMateriales /> },
           { path: ROUTES.adminAccessories, element: <AdminAccesorios /> },
           { path: ROUTES.adminOrders, element: <AdminPedidos /> },
         ],
@@ -30,7 +48,6 @@ export const router = createBrowserRouter([
     ],
   },
 
-  
   // Sitio público
   {
     element: <Layout />,

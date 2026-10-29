@@ -53,6 +53,10 @@ export const CONFIGURATOR_TEXTS = {
   approximateDimensions: (heightMin, heightMax, widthMin, widthMax, depthMin, depthMax) =>
     `Medidas aproximadas: alto ${heightMin}–${heightMax} cm · ancho ${widthMin}–${widthMax} cm · profundidad ${depthMin}–${depthMax} cm`,
   colorLabel: "Color",
+  noColorSelected: "Sin color seleccionado",
+  colorUnavailable:
+    "El color elegido ya no está disponible. Elegí otro color para continuar.",
+  colorLoadError: "No se pudieron cargar los colores.",
   uploadedImage: "Imagen cargada para el diseño",
   savedDesigns: "Diseños guardados",
 };

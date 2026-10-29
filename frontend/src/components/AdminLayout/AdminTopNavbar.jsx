@@ -58,16 +58,12 @@ const AdminTopNavbar = ({ onMenuClick }) => {
             <Menu size={24} />
           </button>
 
-          {/* <Link
+          <Link
             to={ROUTES.admin}
             className="text-lg font-bold tracking-tight text-neutral-900"
           >
             GraffiArt
-          </Link> */}
-
-          <span className="hidden md:block border-l border-neutral-200 pl-3 text-sm text-neutral-500">
-            Panel de Administración
-          </span>
+          </Link>
         </div>
 
         <div className="flex items-center gap-2">
@@ -126,8 +122,6 @@ const AdminTopNavbar = ({ onMenuClick }) => {
               </div>
             )}
           </div>
-
-          
         </div>
       </div>
 

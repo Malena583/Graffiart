@@ -22,7 +22,9 @@ const formatConfigSummary = (configuracion) => {
       `Material: ${Array.isArray(materiales) ? materiales.join(", ") : materiales}`,
     );
   }
-  if (configuracion.color) items.push(`Color: ${configuracion.color}`);
+  // colorNombre es el nombre legible; "color" puede ser solo el id del color.
+  const color = configuracion.colorNombre || configuracion.color;
+  if (color) items.push(`Color: ${color}`);
   const accesorios =
     configuracion.accesoriosNombres || configuracion.accesorios;
   if (accesorios?.length) {

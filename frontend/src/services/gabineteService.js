@@ -10,6 +10,11 @@ export const listarTamanosConfigurador = async () => {
   return data;
 };
 
+export const listarColoresConfigurador = async () => {
+  const { data } = await apiClient.get("/gabinetes/colores-configuracion");
+  return data;
+};
+
 export const obtenerGabinete = async (id) => {
   const { data } = await apiClient.get(`/gabinetes/${id}`);
   return data;

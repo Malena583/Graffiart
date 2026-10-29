@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   ChevronDown,
   ChevronRight,
+  ExternalLink,
   X,
 } from "lucide-react";
 import { ROUTES } from "../../constants/ROUTES";
@@ -196,7 +197,16 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         </ul>
       </nav>
 
-      
+      <div className="border-t border-neutral-800 p-4">
+        <NavLink
+          to={ROUTES.home}
+          onClick={onClose}
+          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-400 transition-colors hover:bg-neutral-800 hover:text-white"
+        >
+          <ExternalLink className="h-5 w-5 shrink-0" aria-hidden="true" />
+          {ADMIN_MESSAGES.labels.label_public_site}
+        </NavLink>
+      </div>
     </aside>
   );
 };

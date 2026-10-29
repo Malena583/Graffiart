@@ -42,7 +42,16 @@ const CategorySection = ({ categoria, seleccion, onSeleccionar }) => {
                         : "border-neutral-300 bg-white text-neutral-700 hover:border-neutral-500"
                   }`}
                 >
-                  <span className="block font-medium">{opcion.label}</span>
+                  <span className="flex items-center gap-2 font-medium">
+                    {opcion.hex && (
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-4 w-4 shrink-0 rounded-full border border-neutral-400"
+                        style={{ backgroundColor: opcion.hex }}
+                      />
+                    )}
+                    {opcion.label}
+                  </span>
                   {opcion.descripcion && (
                     <span className="mt-1 block text-xs opacity-75">
                       {opcion.descripcion}

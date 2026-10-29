@@ -6,6 +6,9 @@ const SIZE_SCALE = {
   FULL_TOWER: 1,
 };
 
+const DEFAULT_SHELL = "#303030";
+const DEFAULT_PANEL = "#303030";
+
 const ConfiguratorPreview = ({
   seleccion,
   categorias,
@@ -15,6 +18,14 @@ const ConfiguratorPreview = ({
   const tamano = categorias
     .find((categoria) => categoria.id === "tamano")
     ?.opciones.find((opcion) => opcion.id === seleccion.tamano);
+  // El color viene de las opciones activas; si el color elegido ya no está
+  // activo (por ejemplo, en un diseño guardado) se usa el que se guardó.
+  const colorOption = categorias
+    .find((categoria) => categoria.id === "color")
+    ?.opciones.find((opcion) => opcion.id === seleccion.color);
+  const colorHex = colorOption?.hex ?? (seleccion.color ? seleccion.colorHex : "");
+  const colorNombre =
+    colorOption?.label ?? (seleccion.color ? seleccion.colorNombre : "");
   const scale = SIZE_SCALE[tamano?.tamano] ?? 1;
   const widthLabel = tamano
     ? `${CONFIGURATOR_TEXTS.width}: ${tamano.anchoMinCm}–${tamano.anchoMaxCm} cm`
@@ -60,9 +71,10 @@ const ConfiguratorPreview = ({
             width="220"
             height="400"
             rx="10"
-            fill="#303030"
+            fill={colorHex || DEFAULT_SHELL}
             stroke="#525252"
             strokeWidth="2"
+            style={{ transition: "fill 300ms" }}
           />
           <rect
             x="35"
@@ -82,9 +94,11 @@ const ConfiguratorPreview = ({
             width="120"
             height="315"
             rx="4"
-            fill="#303030"
+            fill={colorHex || DEFAULT_PANEL}
+            fillOpacity={colorHex ? 0.35 : 1}
             stroke="#737373"
             strokeWidth="1"
+            style={{ transition: "fill 300ms" }}
           />
           {imagen && (
             <image
@@ -119,6 +133,16 @@ const ConfiguratorPreview = ({
         </p>
       )}
       <p className="mt-1 text-center text-xs text-neutral-500">{depthLabel}</p>
+      {colorHex && (
+        <p className="mt-1 flex items-center justify-center gap-2 text-xs text-neutral-500">
+          <span
+            aria-hidden="true"
+            className="inline-block h-3 w-3 rounded-full border border-neutral-400"
+            style={{ backgroundColor: colorHex }}
+          />
+          {CONFIGURATOR_TEXTS.colorLabel}: {colorNombre || colorHex}
+        </p>
+      )}
       {imagen && (
         <button
           type="button"
