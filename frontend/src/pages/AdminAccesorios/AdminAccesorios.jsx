@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AdminPage from "../../components/AdminPage/AdminPage";
 import Button from "../../components/Button/Button";
 import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
 import DataTable from "../../components/DataTable/DataTable";
@@ -137,19 +138,12 @@ const AdminAccesorios = () => {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8 sm:px-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-neutral-900">
-            {ACCESORIO_FORM.pageTitle}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">{M.subtitle}</p>
-        </div>
-        <Button variant="compact" onClick={openCreate}>
-          {ACCESORIO_FORM.createButton}
-        </Button>
-      </header>
-
+    <AdminPage
+      title={ACCESORIO_FORM.pageTitle}
+      subtitle={M.subtitle}
+      actionLabel={ACCESORIO_FORM.createButton}
+      onAction={openCreate}
+    >
       {!formOpen && crud.error && <Feedback type="error">{crud.error}</Feedback>}
       {crud.message && <Feedback type="success">{crud.message}</Feedback>}
 
@@ -184,7 +178,7 @@ const AdminAccesorios = () => {
           <p className="mt-2 text-neutral-500">{M.confirmDeleteNote}</p>
         </ConfirmDialog>
       )}
-    </div>
+    </AdminPage>
   );
 };
 

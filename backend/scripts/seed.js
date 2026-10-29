@@ -24,7 +24,7 @@ async function seedCategorias() {
 
 async function seedAdmin() {
   const email = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
-  const password = process.env.ADMIN_PASSWORD || 'madredeDios';
+  const password = process.env.ADMIN_PASSWORD || 'admin1234';
   const passwordHash = await bcrypt.hash(password, 10);
 
   const existente = await repo('usuario').findOneBy({ email });
@@ -44,8 +44,20 @@ async function seedAdmin() {
   console.log(`Administrador listo: ${email}`);
 }
 
+async function ensureDatabaseSchema() {
+  const [{ tableCount }] = await AppDataSource.query(
+    'SELECT COUNT(*) AS tableCount FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE()'
+  );
+
+  if (Number(tableCount) === 0) {
+    await AppDataSource.synchronize();
+    console.log('Esquema de base de datos creado.');
+  }
+}
+
 async function main() {
   await initDataSource();
+  await ensureDatabaseSchema();
   const gabinetesData = [
     {
       id: 'gab-01',

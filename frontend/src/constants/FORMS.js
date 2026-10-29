@@ -109,7 +109,6 @@ export const MATERIAL_FORM = {
     stock: "Stock",
     actions: "Acciones",
   },
-  createLabel: "Agregar material",
 };
 
 export const PERFIL_FORM = {

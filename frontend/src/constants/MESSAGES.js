@@ -119,7 +119,6 @@ export const MESSAGES = {
     categorias: {
       title: "Gestión de categorías",
       subtitle: "Administrá las categorías de los productos de GraffiArt.",
-      cardText: "Crear, editar y eliminar categorías de productos.",
       item: "esta categoría",
       loadError: "No se pudieron cargar las categorías.",
       saveError: "No se pudo guardar la categoría.",
@@ -140,7 +139,6 @@ export const MESSAGES = {
     productos: {
       title: "Gestión de productos",
       subtitle: "Creá, modificá y eliminá los productos disponibles en GraffiArt.",
-      cardText: "Crear, editar y eliminar los productos del catálogo.",
       item: "este producto",
       loadError: "No se pudieron cargar los datos.",
       saveError: "No se pudo guardar el producto.",
@@ -162,7 +160,6 @@ export const MESSAGES = {
     materiales: {
       title: "Gestión de inventario",
       subtitle: "Controlá el stock de los materiales.",
-      cardText: "Controlar el stock de materiales.",
       item: "este material",
       loadError: "No se pudo conectar con el servidor",
       saveError:
@@ -174,6 +171,11 @@ export const MESSAGES = {
       updated: "Material actualizado correctamente.",
       deleted: "Material eliminado correctamente.",
       lowStock: "Productos que requieren reposición",
+      currentStock: "stock actual",
+      minStock: "mínimo",
+      confirmDeleteTitle: "Eliminar material",
+      confirmDeleteText: (nombre) => 
+        `¿Seguro que querés eliminar el material «${nombre}»?`,
       empty: "No hay materiales cargados todavía",
     },
   },

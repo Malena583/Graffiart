@@ -1,6 +1,7 @@
 import Admin from "./Admin/Admin";
 import AdminAccesorios from "./AdminAccesorios/AdminAccesorios";
 import AdminCategorias from "./AdminCategorias/AdminCategorias";
+import AdminPedidos from "./AdminPedidos/AdminPedidos";
 import AdminProductos from "./AdminProductos/AdminProductos";
 import Carrito from "./Carrito/Carrito";
 import Configurator from "./Configurator/Configurator";
@@ -16,6 +17,7 @@ export {
   Admin,
   AdminAccesorios,
   AdminCategorias,
+  AdminPedidos,
   AdminProductos,
   Carrito,
   Configurator,

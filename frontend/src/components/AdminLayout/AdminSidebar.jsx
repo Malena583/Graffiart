@@ -1,210 +1,143 @@
 import { useState } from "react";
-import { NavLink, useLocation } from "react-router";
-import {
-  Box,
-  LayoutDashboard,
-  Package,
-  Boxes,
-  ShoppingCart,
-  ChevronDown,
-  ChevronRight,
-  X,
-} from "lucide-react";
-import { ROUTES } from "../../constants/ROUTES";
+import { NavLink, useLocation, useNavigate } from "react-router";
+import { ChevronDown, ChevronRight, ExternalLink, LogOut } from "lucide-react";
 import { ADMIN_MESSAGES } from "../../constants/ADMIN_MESSAGE";
+import { ADMIN_NAV } from "../../constants/ADMIN_NAV";
+import { ROUTES } from "../../constants/ROUTES";
+import { useAuthStore } from "../../store/authStore";
 
-const SIDEBAR_ITEMS = [
-  {
-    label: ADMIN_MESSAGES.labels.label_dashboard,
-    to: ROUTES.admin,
-    icon: LayoutDashboard,
-  },
-  {
-    label: ADMIN_MESSAGES.labels.label_products,
-    icon: Package,
-    children: [
-      { label: ADMIN_MESSAGES.labels.label_catalog, to: ROUTES.adminProducts },
-      { label: ADMIN_MESSAGES.labels.label_designs, to: ROUTES.adminDesigns },
-      { label: ADMIN_MESSAGES.labels.label_sizes, to: ROUTES.adminSizes },
-      { label: ADMIN_MESSAGES.labels.label_colors, to: ROUTES.adminColors },
-      { label: ADMIN_MESSAGES.labels.label_materials, to: ROUTES.adminMaterials },
-      { label: ADMIN_MESSAGES.labels.label_accessories, to: ROUTES.adminAccessories },
-    ],
-  },
-  {
-    label: ADMIN_MESSAGES.labels.label_categories,
-    to: ROUTES.adminCategories,
-    icon: Boxes,
-  },
-  {
-    label: ADMIN_MESSAGES.labels.label_inventory,
-    to: ROUTES.inventory,
-    icon: Box,
-  },
-  {
-    label: ADMIN_MESSAGES.labels.label_orders,
-    to: ROUTES.adminOrders,
-    icon: ShoppingCart,
-  },
-];
+const ITEM_CLASS = "flex items-center gap-3 rounded-lg px-3 text-sm transition-colors";
+const ACTIVE_CLASS = "bg-neutral-800 text-white";
+const IDLE_CLASS = "text-neutral-400 hover:bg-neutral-800 hover:text-white";
 
+const isPathActive = (pathname, to) =>
+  pathname === to || pathname.startsWith(`${to}/`);
+
+// Menú lateral del panel: grupos desplegables, links directos y cerrar sesión.
+// Props:
+//   isOpen: true si el menú está visible (en celulares)
+//   onClose: cierra el menú (en celulares)
 const AdminSidebar = ({ isOpen, onClose }) => {
-  const location = useLocation();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   // Si la URL actual pertenece a un hijo, ese grupo arranca abierto
-  const [expandedItem, setExpandedItem] = useState(
+  const [expandedId, setExpandedId] = useState(
     () =>
-      SIDEBAR_ITEMS.find((item) =>
-        item.children?.some(
-          (child) =>
-            location.pathname === child.to ||
-            location.pathname.startsWith(child.to + "/"),
-        ),
-      )?.label ?? null,
+      ADMIN_NAV.find((item) =>
+        item.children?.some((child) => isPathActive(pathname, child.to)),
+      )?.id ?? null,
   );
 
-  const toggleItem = (label) => {
-    setExpandedItem((prev) => (prev === label ? null : label));
-  };
-
-  // exact = true: solo coincide con la ruta exacta (para Dashboard)
-  const isItemActive = (to, exact = false) => {
-    if (!to) return false;
-    return exact
-      ? location.pathname === to
-      : location.pathname === to || location.pathname.startsWith(to + "/");
-  };
-
-  const isItemExpanded = (label) => expandedItem === label;
-
-  const hasActiveChild = (item) => {
-    if (!item.children) return false;
-    return item.children.some((child) => isItemActive(child.to));
+  const handleLogout = () => {
+    logout();
+    navigate(ROUTES.login, { replace: true });
   };
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex flex-col w-64 transform bg-neutral-900 transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-0 left-0 top-16 z-40 flex w-64 transform flex-col bg-neutral-900 transition-transform duration-300 ease-in-out lg:sticky lg:z-auto lg:h-[calc(100vh-4rem)] lg:translate-x-0 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:z-auto`}
-      aria-label={ADMIN_MESSAGES.labels.aria_label_sidebar}
+      }`}
+      aria-label={ADMIN_MESSAGES.aria.sidebar}
     >
-      <div className="flex h-16 items-center justify-between border-b border-neutral-800 px-5">
-        <NavLink
-          to={ROUTES.admin}
-          className="text-lg font-semibold text-white hover:text-neutral-300"
-          onClick={onClose}
-        >
-          {ADMIN_MESSAGES.NavLink.grafiart_admin}
-        </NavLink>
-        <button
-          type="button"
-          onClick={onClose}
-          className="lg:hidden p-2 text-neutral-400 hover:text-white"
-          aria-label={ADMIN_MESSAGES.labels.aria_label_menu}
-        >
-          <X size={24} />
-        </button>
-      </div>
-
       <nav
         className="flex-1 overflow-y-auto py-4"
-        aria-label="Navegación principal"
+        aria-label={ADMIN_MESSAGES.aria.mainNav}
       >
         <ul className="space-y-1 px-3">
-          {SIDEBAR_ITEMS.map((item) => {
-            // Dashboard solo se marca activo en /admin exacto
-            const isActive = isItemActive(item.to, item.to === ROUTES.admin);
-            const hasChildren = item.children && item.children.length > 0;
-            const childActive = hasActiveChild(item);
-            const isParentActive = isActive || childActive;
+          {ADMIN_NAV.map((item) => {
+            const Icon = item.icon;
 
-            return (
-              <li key={item.label}>
-                {hasChildren ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => toggleItem(item.label)}
-                      className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                        isParentActive
-                          ? "bg-neutral-800 text-white"
-                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                      }`}
-                      aria-expanded={isItemExpanded(item.label)}
-                      aria-controls={`sidebar-${item.label}`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                        {item.label}
-                      </span>
-                      <ChevronDown
-                        className={`h-4 w-4 shrink-0 transition-transform ${
-                          isItemExpanded(item.label) ? "rotate-180" : ""
-                        }`}
-                        aria-hidden="true"
-                      />
-                    </button>
-                    <ul
-                      id={`sidebar-${item.label}`}
-                      className={`overflow-hidden transition-all duration-200 ${
-                        isItemExpanded(item.label)
-                          ? "max-h-96 opacity-100"
-                          : "max-h-0 opacity-0"
-                      }`}
-                    >
-                      {item.children.map((child) => {
-                        const childIsActive = isItemActive(child.to);
-                        return (
-                          <li key={child.to}>
-                            <NavLink
-                              to={child.to}
-                              onClick={onClose}
-                              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                childIsActive
-                                  ? "bg-neutral-800 text-white"
-                                  : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                              }`}
-                              aria-current={childIsActive ? "page" : undefined}
-                            >
-                              <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
-                              {child.label}
-                            </NavLink>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </>
-                ) : (
+            if (!item.children) {
+              return (
+                <li key={item.id}>
                   <NavLink
                     to={item.to}
                     onClick={onClose}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "bg-neutral-800 text-white"
-                        : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
-                    }`}
-                    aria-current={isActive ? "page" : undefined}
+                    className={({ isActive }) =>
+                      `${ITEM_CLASS} py-2.5 font-medium ${isActive ? ACTIVE_CLASS : IDLE_CLASS}`
+                    }
                   >
-                    <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
                     {item.label}
                   </NavLink>
-                )}
+                </li>
+              );
+            }
+
+            const expanded = expandedId === item.id;
+            const hasActiveChild = item.children.some((child) =>
+              isPathActive(pathname, child.to),
+            );
+
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expanded ? null : item.id)}
+                  className={`${ITEM_CLASS} w-full cursor-pointer justify-between py-2.5 font-medium ${
+                    hasActiveChild ? ACTIVE_CLASS : IDLE_CLASS
+                  }`}
+                  aria-expanded={expanded}
+                  aria-controls={`sidebar-${item.id}`}
+                >
+                  <span className="flex items-center gap-3">
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    {item.label}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 transition-transform ${
+                      expanded ? "rotate-180" : ""
+                    }`}
+                    aria-hidden="true"
+                  />
+                </button>
+                <ul
+                  id={`sidebar-${item.id}`}
+                  className={`overflow-hidden transition-all duration-200 ${
+                    expanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                  }`}
+                >
+                  {item.children.map((child) => (
+                    <li key={child.to}>
+                      <NavLink
+                        to={child.to}
+                        onClick={onClose}
+                        className={({ isActive }) =>
+                          `${ITEM_CLASS} py-2 ${isActive ? ACTIVE_CLASS : IDLE_CLASS}`
+                        }
+                      >
+                        <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        {child.label}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
               </li>
             );
           })}
         </ul>
       </nav>
 
-      <div className="border-t border-neutral-800 p-4">
+      <div className="space-y-1 border-t border-neutral-800 p-4">
         <NavLink
           to={ROUTES.home}
           onClick={onClose}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors"
+          className={`${ITEM_CLASS} py-2.5 font-medium ${IDLE_CLASS}`}
         >
-          <LayoutDashboard className="h-5 w-5 shrink-0" aria-hidden="true" />
-          Ver sitio público
+          <ExternalLink className="h-5 w-5 shrink-0" aria-hidden="true" />
+          {ADMIN_MESSAGES.actions.viewSite}
         </NavLink>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className={`${ITEM_CLASS} w-full cursor-pointer py-2.5 font-medium ${IDLE_CLASS}`}
+        >
+          <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
+          {ADMIN_MESSAGES.actions.logout}
+        </button>
       </div>
     </aside>
   );

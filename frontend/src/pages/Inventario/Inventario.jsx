@@ -1,6 +1,9 @@
+import { useState } from "react";
+import AdminPage from "../../components/AdminPage/AdminPage";
 import Button from "../../components/Button/Button";
+import ConfirmDialog from "../../components/ConfirmDialog/ConfirmDialog";
 import DataTable from "../../components/DataTable/DataTable";
-import EntityForm from "../../components/EntityForm/EntityForm";
+import EntityFormModal from "../../components/EntityFormModal/EntityFormModal";
 import Feedback from "../../components/Feedback/Feedback";
 import { MATERIAL_FORM } from "../../constants/FORMS";
 import { MESSAGES } from "../../constants/MESSAGES";
@@ -36,6 +39,46 @@ const Inventario = () => {
     mapError,
   });
 
+  const [formOpen, setFormOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const openCreate = () => {
+    crud.cancelEdit(); // limpia el formulario y los avisos anteriores
+    setFormOpen(true);
+  };
+
+  const openEdit = (material) => {
+    crud.startEdit(material);
+    setFormOpen(true);
+  };
+
+  const closeForm = () => {
+    if (saving) return;
+    crud.cancelEdit();
+    setFormOpen(false);
+  };
+
+  const handleSubmit = async (event) => {
+    setSaving(true);
+    const saved = await crud.onSubmit(event);
+    setSaving(false);
+    // Si falla, el modal queda abierto con los datos que el usuario escribió
+    if (saved) setFormOpen(false);
+  };
+
+  const closeDelete = () => {
+    if (!deleting) setMaterialToDelete(null);
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    await crud.remove(materialToDelete.id);
+    setDeleting(false);
+    setMaterialToDelete(null);
+  };
+
   const lowStock = crud.items.filter(
     (material) => material.stockActual < material.stockMinimo,
   );
@@ -56,16 +99,17 @@ const Inventario = () => {
       header: MATERIAL_FORM.columns.actions,
       render: (material) => (
         <div className="flex gap-4">
-          <Button variant="linkEdit" onClick={() => crud.startEdit(material)}>
+          <Button
+            variant="linkEdit"
+            onClick={() => openEdit(material)}
+            aria-label={`${MESSAGES.actions.edit} ${material.nombre}`}
+          >
             {MESSAGES.actions.edit}
           </Button>
           <Button
             variant="linkDelete"
-            onClick={() => {
-              if (window.confirm(MESSAGES.confirmDelete(M.item))) {
-                crud.remove(material.id);
-              }
-            }}
+            onClick={() => setMaterialToDelete(material)}
+            aria-label={`${MESSAGES.actions.delete} ${material.nombre}`}
           >
             {MESSAGES.actions.delete}
           </Button>
@@ -75,12 +119,13 @@ const Inventario = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 space-y-6">
-      <header>
-        <h1 className="text-xl font-semibold text-neutral-900">{M.title}</h1>
-        <p className="mt-1 text-sm text-neutral-500">{M.subtitle}</p>
-      </header>
-      {crud.error && <Feedback type="error">{crud.error}</Feedback>}
+    <AdminPage
+      title={M.title}
+      subtitle={M.subtitle}
+      actionLabel={MATERIAL_FORM.createButton}
+      onAction={openCreate}
+    >
+      {!formOpen && crud.error && <Feedback type="error">{crud.error}</Feedback>}
       {crud.message && <Feedback type="success">{crud.message}</Feedback>}
 
       {lowStock.length > 0 && (
@@ -89,8 +134,8 @@ const Inventario = () => {
           <ul className="space-y-1">
             {lowStock.map((material) => (
               <li key={material.id}>
-                <strong>{material.nombre}</strong>: stock actual{" "}
-                {material.stockActual} {material.unidadMedida}, mínimo{" "}
+                <strong>{material.nombre}</strong>: {M.currentStock}{" "}
+                {material.stockActual} {material.unidadMedida}, {M.minStock}{" "}
                 {material.stockMinimo} {material.unidadMedida}.
               </li>
             ))}
@@ -98,19 +143,39 @@ const Inventario = () => {
         </Feedback>
       )}
 
-      <EntityForm
-        fields={MATERIAL_FORM.fields}
-        values={crud.values}
-        onChange={crud.onChange}
-        onSubmit={crud.onSubmit}
-        onCancel={crud.cancelEdit}
-        editing={Boolean(crud.editingId)}
-        submitLabel={MATERIAL_FORM.createLabel}
-        editLabel={MESSAGES.actions.saveChanges}
+      <DataTable
+        columns={columns}
+        rows={crud.items}
+        empty={crud.loading ? MESSAGES.loading : M.empty}
       />
 
-      <DataTable columns={columns} rows={crud.items} empty={M.empty} />
-    </div>
+      {formOpen && (
+        <EntityFormModal
+          title={crud.editingId ? MATERIAL_FORM.editTitle : MATERIAL_FORM.createTitle}
+          fields={MATERIAL_FORM.fields}
+          values={crud.values}
+          onChange={crud.onChange}
+          onSubmit={handleSubmit}
+          onCancel={closeForm}
+          editing={Boolean(crud.editingId)}
+          createLabel={MATERIAL_FORM.createLabel}
+          saving={saving}
+          error={crud.error}
+        />
+      )}
+
+      {materialToDelete && (
+        <ConfirmDialog
+          title={M.confirmDeleteTitle}
+          confirmLabel={MESSAGES.actions.delete}
+          onConfirm={handleDelete}
+          onCancel={closeDelete}
+          loading={deleting}
+        >
+          <p>{M.confirmDeleteText(materialToDelete.nombre)}</p>
+        </ConfirmDialog>
+      )}
+    </AdminPage>
   );
 };
 

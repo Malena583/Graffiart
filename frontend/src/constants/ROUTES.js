@@ -13,11 +13,7 @@ export const ROUTES = {
   admin: "/admin",
   adminCategories: "/admin/categorias",
   adminProducts: "/admin/productos",
-  inventory: "/inventario",
-  adminDesigns: "/admin/disenos",
-  adminSizes: "/admin/tamanos",
-  adminColors: "/admin/colores",
-  adminMaterials: "/admin/materiales",
+  inventory: "/admin/inventario",
   adminAccessories: "/admin/accesorios",
   adminOrders: "/admin/pedidos",
 };
